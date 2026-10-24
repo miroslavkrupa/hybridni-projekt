@@ -2766,23 +2766,11 @@ const SKILLS = {
   jerab: { icon: '🏗️', label: 'Jeřáb' },
 };
 
-// Definice hybridního řízení projektů – doslova z: Krupa, M., Šimůnek, D. & Hájek, J. (2023).
-// Hybrid Project Management: A Literature Review. HED 2023. Český text je překlad.
-const HPM_DEFINITION = {
-  en: 'Hybrid project management is a project management approach combining elements of traditional and agile project management to gain advantages and suppress the disadvantages of both to increase project success. It balances flexibility, effectiveness, productivity, and project control. The ability to customize the combination to the specific needs makes this approach suitable for project management in various contexts.',
-  cs: 'Hybridní řízení projektů je přístup k řízení projektů kombinující prvky tradičního a agilního řízení projektů s cílem získat výhody a potlačit nevýhody obou, a zvýšit tak úspěšnost projektu. Vyvažuje flexibilitu, efektivitu, produktivitu a kontrolu nad projektem. Schopnost přizpůsobit kombinaci konkrétním potřebám činí tento přístup vhodným pro řízení projektů v různých kontextech.',
-  source: 'Krupa, Šimůnek a Hájek (2023): Hybrid Project Management: A Literature Review, HED 2023',
-};
-const HPM_BOUNDARY = {
-  en: 'HPM is not tailoring APM or TPM, nor is it a combination of practices within one of them, nor is it a temporary combination of practices during the transition from one approach to the other.',
-  cs: 'Hybridní řízení projektů není přizpůsobení (tailoring) agilního nebo tradičního přístupu, není to kombinace praktik v rámci jednoho z nich a není to ani dočasná kombinace praktik během přechodu od jednoho přístupu k druhému.',
-  source: 'Krupa, Šimůnek a Hájek (2023), HED 2023',
-};
-
 const GLOSSARY = [
-  ['Hybridní řízení projektů', `„${HPM_DEFINITION.cs}“<br><small>${HPM_DEFINITION.source}. Původní znění: <i>„${HPM_DEFINITION.en}“</i></small>`],
-  ['Kontinuum přístupů', 'Od čistě agilních přes upravené a kombinované agilní metodiky, hybridní řízení, kombinované a upravené tradiční metodiky až po čistě tradiční (Krupa, Šimůnek a Hájek, 2023). Hybrid leží uprostřed: kombinuje prvky tradičního i agilního přístupu v jednom projektu.'],
-  ['Co hybridní řízení není', `${HPM_BOUNDARY.cs}<br><small>${HPM_BOUNDARY.source}. Původní znění: <i>„${HPM_BOUNDARY.en}“</i></small>`],
+  // Definice HPM podle článku Hybrid Project Management: A Literature Review (HED 2023), v českém překladu.
+  ['Hybridní řízení projektů', 'Přístup k řízení projektů kombinující prvky tradičního a agilního řízení projektů s cílem získat výhody a potlačit nevýhody obou, a zvýšit tak úspěšnost projektu. Vyvažuje flexibilitu, efektivitu, produktivitu a kontrolu nad projektem. Schopnost přizpůsobit kombinaci konkrétním potřebám činí tento přístup vhodným pro řízení projektů v různých kontextech.'],
+  ['Kontinuum přístupů', 'Od čistě agilních přes upravené a kombinované agilní metodiky, hybridní řízení, kombinované a upravené tradiční metodiky až po čistě tradiční. Hybrid leží uprostřed: kombinuje prvky tradičního i agilního přístupu v jednom projektu.'],
+  ['Co hybridní řízení není', 'Není to přizpůsobení (tailoring) agilního nebo tradičního přístupu, není to kombinace praktik v rámci jednoho z nich a není to ani dočasná kombinace praktik během přechodu od jednoho přístupu k druhému.'],
   ['Prediktivní přístup (vodopád)', 'Rozsah, čas a náklady se naplánují předem; fáze jdou po sobě. Vhodné pro jasné, stabilní požadavky (stavba, nákup).'],
   ['Agilní přístup', 'Práce v krátkých iteracích s častou zpětnou vazbou. Vhodné, když jsou požadavky nejisté nebo se vyvíjejí (software, design).'],
   ['Scrum', 'Agilní rámec: sprinty, role (Product Owner, Scrum Master, vývojáři) a události (plánování, daily, review, retrospektiva).'],
@@ -2810,7 +2798,7 @@ const GLOSSARY = [
   ['Vzorec / antivzorec', 'Opakující se řešení, které v daném kontextu vytváří hodnotu (vzorec), nebo naopak dysfunkci (antivzorec). Ve hře ho popisuje řetězec kontext → forma → mechanismus → důsledek.'],
   ['Režie řízení', 'Čas a energie, které stojí porady, reporty a schvalování. Každá praktika něco přináší, ale také něco stojí.'],
   ['WIP limit', 'Kanbanové omezení počtu rozpracovaných úkolů. Brání přetížení a urychluje dokončování.'],
-  ['Water-Scrum-Fall', 'Hybridní model se vzorem TAT: tradiční fáze na začátku (požadavky, plán, smlouva), agilní sprinty uprostřed a tradiční fáze na konci (testy, převzetí). Krupa a Hájek (2024) ho řadí mezi 22 popsaných hybridních modelů.'],
+  ['Water-Scrum-Fall', 'Hybridní model se vzorem TAT: tradiční fáze na začátku (požadavky, plán, smlouva), agilní sprinty uprostřed a tradiční fáze na konci (testy, převzetí). Patří mezi nejznámější hybridní modely.'],
   ['Sprinty v betonu', 'Antivzorec: sprinty uvnitř plánu, kde má každá funkce předem pevný termín. Rituály zůstanou, přínosy agility zmizí. Neplést s Water-Scrum-Fall – ten fázuje celý životní cyklus, ale agilní vývoj uvnitř nechává pružný.'],
   ['Ganttův diagram', 'Časový plán úkolů jako pruhy na ose dní, včetně závislostí mezi nimi. Základní nástroj prediktivního plánování.'],
   ['Člověkoden (MD)', 'Jednotka pracnosti: práce jednoho člověka po jeden den. Úkol na 3 dny pro 2 lidi = 6 MD. V prediktivních projektech nahrazuje story pointy.'],

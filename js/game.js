@@ -1058,16 +1058,10 @@ function intro() {
   ];
   return `
     <div class="hero card intro-hero">
-      <img class="hero-art" src="img/alchymie.svg" alt="Projektový manažer jako alchymista míchá v kotli projektovou metodiku" width="600" height="400">
+      <img class="hero-art" src="img/alchymie.webp" alt="Postava v zástěře míchá v kotli projektovou metodiku, z páry stoupají Ganttův diagram, zelená fajfka a šipky iterace" width="1536" height="1024">
       <h1>Projektová alchymie</h1>
       <p class="tagline">Namíchej správné řízení pro každý projekt</p>
       <p class="lead">Některé projekty se dají naplánovat dopředu, jiné se musí objevovat za pochodu a některé kombinují obojí. Univerzální recept neexistuje.</p>
-    </div>
-    <div class="card definition">
-      <h3>Co je hybridní řízení projektů?</h3>
-      <blockquote>„${HPM_DEFINITION.cs}“</blockquote>
-      <p class="def-source">— ${HPM_DEFINITION.source}</p>
-      <details><summary>Původní znění</summary><blockquote lang="en">“${HPM_DEFINITION.en}”</blockquote></details>
     </div>
     <h2 class="section-title">Co tě čeká</h2>
     <div class="tile-grid">
@@ -1115,25 +1109,7 @@ function approachReveal() {
         <div class="mini pred"><h3>📐 Prvky řízené prediktivně</h3><p>${sc.predWorld}</p></div>
         <div class="mini agile"><h3>🔄 Prvky řízené agilně</h3><p>${sc.agileWorld}</p></div>
       </div>` : `<p>${sc.approachText}</p>`;
-  const why = {
-    pred: 'Proč to není hybrid: všechny prvky projektu se hodí řídit tradičně. Přizpůsobení tradiční metodiky nebo kombinace více tradičních technik (plán, kritická cesta, EVM) je pořád tradiční řízení, ne hybridní.',
-    agile: 'Proč to není hybrid: kombinace agilních praktik (Scrum, Kanban, Lean Startup) je kombinovaná agilita, ne hybridní řízení. Hybrid vzniká až spojením prvků tradičního a agilního přístupu.',
-  }[AP()];
-  return `<div class="approach-reveal ${AP()}"><h3>${a.icon} Tohle je ${a.label.toLowerCase()}</h3>${body}${why ? `<p class="why-not">${why}</p>` : ''}${continuum()}</div>`;
-}
-
-// Kontinuum přístupů k řízení projektů (Krupa, Šimůnek a Hájek, 2023, obr. 3).
-function continuum() {
-  const segs = [
-    ['agile', 'Čistě agilní'], ['agile', 'Upravené a kombinované agilní'], ['hybrid', 'Hybridní řízení'],
-    ['pred', 'Kombinované a upravené tradiční'], ['pred', 'Čistě tradiční'],
-  ];
-  const active = { agile: [0, 1], hybrid: [2], pred: [3, 4] }[AP()];
-  return `
-    <div class="continuum" aria-label="Kontinuum přístupů k řízení projektů">
-      ${segs.map(([k, l], i) => `<span class="seg ${k} ${active.includes(i) ? 'on' : ''}">${l}</span>`).join('')}
-    </div>
-    <p class="continuum-note">Kontinuum přístupů k řízení projektů (Krupa, Šimůnek a Hájek, 2023). Dočasná kombinace praktik při přechodu z jednoho přístupu na druhý není hybridní řízení.</p>`;
+  return `<div class="approach-reveal ${AP()}"><h3>${a.icon} Tohle je ${a.label.toLowerCase()}</h3>${body}</div>`;
 }
 
 function sort() {

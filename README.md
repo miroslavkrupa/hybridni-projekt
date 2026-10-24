@@ -2,7 +2,7 @@
 
 *Namíchej správné řízení pro každý projekt.*
 
-![Projektový manažer jako alchymista vaří v kotli projektovou metodiku](img/alchymie.svg)
+![Postava v zástěře míchá v kotli projektovou metodiku](img/alchymie.webp)
 
 Výuková prohlížečová hra o **řízení projektů**. Hráč vede projekt a musí nejdřív poznat, jaký přístup
 mu sedí – **prediktivní** (vodopád), **agilní**, nebo **hybridní** – a pak k němu namíchat správné
@@ -12,15 +12,10 @@ praktiky. Univerzální recept neexistuje.
 
 ## Co je hybridní řízení projektů
 
-Hra vychází z definice:
-
-> *Hybrid project management is a project management approach combining elements of traditional
-> and agile project management to gain advantages and suppress the disadvantages of both to increase
-> project success. It balances flexibility, effectiveness, productivity, and project control. The
-> ability to customize the combination to the specific needs makes this approach suitable for project
-> management in various contexts.*
->
-> — Krupa, M., Šimůnek, D. & Hájek, J. (2023). *Hybrid Project Management: A Literature Review.* HED 2023.
+Hybridní řízení projektů je přístup k řízení projektů kombinující prvky tradičního a agilního řízení
+projektů s cílem získat výhody a potlačit nevýhody obou, a zvýšit tak úspěšnost projektu. Vyvažuje
+flexibilitu, efektivitu, produktivitu a kontrolu nad projektem. Schopnost přizpůsobit kombinaci
+konkrétním potřebám činí tento přístup vhodným pro řízení projektů v různých kontextech.
 
 Hybridní řízení přitom není přizpůsobení (tailoring) agilního nebo tradičního přístupu, kombinace
 praktik v rámci jednoho z nich, ani dočasná kombinace během přechodu od jednoho přístupu k druhému.
@@ -101,7 +96,7 @@ python3 -m http.server 8765
 ## Struktura
 
 - `index.html` – vstupní stránka
-- `img/` – úvodní ilustrace a ikona hry (SVG, světlý i tmavý režim)
+- `img/` – úvodní ilustrace a ikona hry
 - `css/style.css` – vzhled (světlý i tmavý režim, mobil)
 - `js/data.js` – veškerý obsah hry: `SCENARIOS`, `PRACTICES`, `PRACTICE_PAIRS`, `ESSENTIALS`,
   `APPROACHES`, `PATTERNS`, `CONTEXT_TAGS`, `GENERIC_EVENTS`, `GATE_EVENT`, `GLOSSARY`

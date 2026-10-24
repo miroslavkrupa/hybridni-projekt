@@ -128,13 +128,6 @@ p, li, small { text-wrap: pretty; }
 .intro-hero { padding: 28px 28px 22px; }
 .intro-hero .lead { max-width: 620px; margin: 0 auto; }
 .section-title { margin: 26px 0 10px; }
-.definition { border-left: 6px solid var(--primary); margin-top: 16px; }
-.definition h3 { margin-bottom: 8px; }
-.definition blockquote { margin: 0; font-size: 1.02rem; line-height: 1.55; font-style: italic; }
-.def-source { margin: 8px 0 4px; font-size: .85rem; color: var(--muted); }
-.definition details { font-size: .88rem; color: var(--muted); }
-.definition summary { cursor: pointer; font-weight: 600; color: var(--primary); }
-.definition details blockquote { font-size: .92rem; margin-top: 6px; }
 .tile-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
 .tile-grid.two { grid-template-columns: repeat(2, 1fr); }
 .tile {
@@ -419,13 +412,6 @@ h4 { margin: 14px 0 6px; font-size: 1rem; }
 .approach-reveal.pred { border-left-color: var(--pred); background: var(--pred-soft); }
 .approach-reveal.agile { border-left-color: var(--agile); background: var(--agile-soft); }
 .approach-reveal h3 { margin-bottom: 6px; }
-.why-not { font-weight: 600; }
-.continuum { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 12px; }
-.continuum .seg { font-size: .72rem; text-align: center; padding: 6px 4px; border-radius: 6px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); line-height: 1.2; }
-.continuum .seg.on.agile { background: var(--agile); color: #fff; border-color: var(--agile); }
-.continuum .seg.on.pred { background: var(--pred); color: #fff; border-color: var(--pred); }
-.continuum .seg.on.hybrid { background: var(--both); color: #fff; border-color: var(--both); }
-.continuum-note { font-size: .78rem; color: var(--muted); margin: 6px 0 0; }
 .approach-reveal p:last-child { margin-bottom: 0; }
 
 /* ---------- Kritická cesta, rezerva, experimenty ---------- */
