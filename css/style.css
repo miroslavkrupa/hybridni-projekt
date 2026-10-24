@@ -111,6 +111,8 @@ small { color: var(--muted); }
 /* ---------- Úvod ---------- */
 .hero { text-align: center; padding: 32px; }
 .hero-emoji { font-size: 3.5rem; margin-bottom: 8px; }
+.hero-art { display: block; width: 100%; max-width: 440px; height: auto; margin: -8px auto 4px; }
+.tagline { font-size: 1.15rem; font-weight: 600; color: var(--primary); margin-top: -4px; }
 .lead { font-size: 1.15rem; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; text-align: left; }
 .mini { border-radius: 12px; padding: 14px; }

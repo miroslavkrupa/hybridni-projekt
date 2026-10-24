@@ -764,8 +764,8 @@ function render() {
 function header() {
   return `
     <header class="topbar">
-      <div class="brand"><span class="logo">${S.sc ? S.sc.icon : '🧭'}</span> Hybridní projekt
-        <small>${S.sc ? S.sc.name : 'hra o řízení projektů'}</small></div>
+      <div class="brand"><span class="logo">${S.sc ? S.sc.icon : '⚗️'}</span> Projektová alchymie
+        <small>${S.sc ? S.sc.name : 'namíchej správné řízení pro každý projekt'}</small></div>
       <div class="top-btns">
         <button class="btn ghost" data-action="atlas">🗺️ Atlas</button>
         <button class="btn ghost" data-action="glossary">📖 Slovníček</button>
@@ -864,15 +864,16 @@ function intro() {
   }).join('');
   return `
     <div class="hero card">
-      <div class="hero-emoji">📐🔄</div>
-      <h1>Hybridní projekt</h1>
+      <img class="hero-art" src="img/alchymie.svg" alt="Projektový manažer vaří v kotli projektovou metodiku" width="600" height="420">
+      <h1>Projektová alchymie</h1>
+      <p class="tagline">Namíchej správné řízení pro každý projekt</p>
       <p class="lead">Staneš se projektovým manažerem. Některé projekty se dají naplánovat dopředu, jiné se musí objevovat za pochodu a některé kombinují obojí.</p>
-      <p>Prvním úkolem je <b>poznat, jaký přístup projektu sedí</b> – prediktivní, agilní, nebo hybridní – a podle toho ho řídit.</p>
+      <p>Univerzální recept neexistuje. Prvním úkolem je <b>poznat, jaký přístup projektu sedí</b> – prediktivní, agilní, nebo hybridní – a pak k němu namíchat správné praktiky.</p>
       <h3>Co tě čeká</h3>
       <ol class="steps">
         <li><b>Rozděl práci</b> – co řídit prediktivně a co agilně? A je to vůbec hybrid?</li>
         <li><b>Slož mix praktik</b> – karty se synergiemi, konflikty a omezenou režií.</li>
-        <li><b>Řiď 6 období</b> – plánuj práci, řeš krize, hlídej milníky.</li>
+        <li><b>Řiď projekt</b> – sprint po sprintu, nebo etapu po etapě: plánuj práci, řeš krize, hlídej milníky.</li>
         <li><b>Odhal vzorce a antivzorce</b> – co tvůj mix v projektu doopravdy způsobil.</li>
       </ol>
       <p class="hint">Každá hra vylosuje jiné události a odpovědi jsou pokaždé v jiném pořadí.</p>

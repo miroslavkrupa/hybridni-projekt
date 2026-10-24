@@ -1,7 +1,12 @@
-# Hybridní projekt
+# ⚗️ Projektová alchymie
+
+*Namíchej správné řízení pro každý projekt.*
+
+![Projektový manažer vaří v kotli projektovou metodiku](img/alchymie.svg)
 
 Výuková prohlížečová hra o **řízení projektů**. Hráč vede projekt a musí nejdřív poznat, jaký přístup
-mu sedí – **prediktivní** (vodopád), **agilní**, nebo **hybridní** – a podle toho ho řídit.
+mu sedí – **prediktivní** (vodopád), **agilní**, nebo **hybridní** – a pak k němu namíchat správné
+praktiky. Univerzální recept neexistuje.
 
 ▶ **[Hrát online](https://miroslavkrupa.github.io/hybridni-projekt/)**
 
@@ -59,6 +64,7 @@ python3 -m http.server 8765
 ## Struktura
 
 - `index.html` – vstupní stránka
+- `img/` – úvodní ilustrace a ikona hry (SVG, světlý i tmavý režim)
 - `css/style.css` – vzhled (světlý i tmavý režim, mobil)
 - `js/data.js` – veškerý obsah hry: `SCENARIOS`, `PRACTICES`, `PRACTICE_PAIRS`, `ESSENTIALS`,
   `APPROACHES`, `PATTERNS`, `CONTEXT_TAGS`, `GENERIC_EVENTS`, `GATE_EVENT`, `GLOSSARY`
