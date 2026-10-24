@@ -20,7 +20,7 @@ const GENERIC_EVENTS_PER_GAME = 3;
 const EXPERIMENTS_PER_SPRINT = 2;
 const RATING_POINTS = { best: 10, ok: 4, bad: 0 };
 const RATING_LABEL = { best: '✅ Výborná volba', ok: '⚠️ Přijatelná volba', bad: '❌ Špatná volba' };
-const TRACK_LABEL = { pred: '📐 prediktivní část', agile: '🔄 agilní část', both: '🔗 rozhraní obou částí' };
+const TRACK_LABEL = { pred: '📐 prediktivně řízené prvky', agile: '🔄 agilně řízené prvky', both: '🔗 propojení obou přístupů' };
 const PATTERN_TYPE = { pattern: '🟢 Vzorec', anti: '🔴 Antivzorec' };
 const ALL_APPROACHES = ['hybrid', 'pred', 'agile'];
 const RECORD_KEY = 'hybridni-projekt-rekord-';
@@ -33,7 +33,7 @@ const PERIODS = {
 };
 
 const TIMELINE_LABELS = {
-  hybrid: [['📐 Prediktivní část', 'milníky'], ['🔄 Agilní část', 'sprinty']],
+  hybrid: [['📐 Prediktivní prvky', 'fáze a milníky'], ['🔄 Agilní prvky', 'sprinty']],
   pred: [['📐 Milníky', 'konec každé etapy'], ['🧱 Etapy', 'plán po vlnách']],
   agile: [['🎯 Cíle trakce', 'hodnota pro uživatele'], ['🔄 Sprinty', 'po 2 týdnech']],
 };
@@ -421,7 +421,7 @@ function checkMilestone() {
 }
 
 const MIX_LESSON = {
-  hybrid: 'Dobrý hybridní mix pokryje plán a rizika prediktivní části, iterace a Product Ownera agilní části a hlavně jejich propojení – bez zbytečné režie.',
+  hybrid: 'Dobrý hybridní mix pokryje plán a rizika prediktivně řízených prvků, iterace a Product Ownera u agilně řízených prvků a hlavně jejich propojení v jednom projektu – bez zbytečné režie.',
   pred: 'V prediktivním projektu se vyplatí detailní plán s kritickou cestou, řízení změn a rizik a přesné měření stavu. Agilní ceremonie by tu byly jen režií.',
   agile: 'V agilním projektu se vyplatí iterace, Product Owner, ověřování hypotéz a průběžné zlepšování. Detailní plán by stál na neověřených předpokladech.',
 };
@@ -1110,12 +1110,30 @@ function approachReveal() {
   const sc = S.sc;
   const a = APPROACHES[AP()];
   const body = AP() === 'hybrid' ? `
-      <p>Projekt má dvě velmi odlišné tváře, a proto potřebuje <b>hybridní řízení</b>:</p>
+      <p>V jednom projektu se potkávají prvky, které sedí tradičnímu, i prvky, které sedí agilnímu přístupu. Proto potřebuje <b>hybridní řízení</b>: nejde o dva samostatné projekty s různými metodikami (to by byl program), ale o kombinaci prvků obou přístupů v jednom projektu.</p>
       <div class="two-col">
-        <div class="mini pred"><h3>📐 Prediktivní svět</h3><p>${sc.predWorld}</p></div>
-        <div class="mini agile"><h3>🔄 Agilní svět</h3><p>${sc.agileWorld}</p></div>
+        <div class="mini pred"><h3>📐 Prvky řízené prediktivně</h3><p>${sc.predWorld}</p></div>
+        <div class="mini agile"><h3>🔄 Prvky řízené agilně</h3><p>${sc.agileWorld}</p></div>
       </div>` : `<p>${sc.approachText}</p>`;
-  return `<div class="approach-reveal ${AP()}"><h3>${a.icon} Tohle je ${a.label.toLowerCase()}</h3>${body}</div>`;
+  const why = {
+    pred: 'Proč to není hybrid: všechny prvky projektu se hodí řídit tradičně. Přizpůsobení tradiční metodiky nebo kombinace více tradičních technik (plán, kritická cesta, EVM) je pořád tradiční řízení, ne hybridní.',
+    agile: 'Proč to není hybrid: kombinace agilních praktik (Scrum, Kanban, Lean Startup) je kombinovaná agilita, ne hybridní řízení. Hybrid vzniká až spojením prvků tradičního a agilního přístupu.',
+  }[AP()];
+  return `<div class="approach-reveal ${AP()}"><h3>${a.icon} Tohle je ${a.label.toLowerCase()}</h3>${body}${why ? `<p class="why-not">${why}</p>` : ''}${continuum()}</div>`;
+}
+
+// Kontinuum přístupů k řízení projektů (Krupa, Šimůnek a Hájek, 2023, obr. 3).
+function continuum() {
+  const segs = [
+    ['agile', 'Čistě agilní'], ['agile', 'Upravené a kombinované agilní'], ['hybrid', 'Hybridní řízení'],
+    ['pred', 'Kombinované a upravené tradiční'], ['pred', 'Čistě tradiční'],
+  ];
+  const active = { agile: [0, 1], hybrid: [2], pred: [3, 4] }[AP()];
+  return `
+    <div class="continuum" aria-label="Kontinuum přístupů k řízení projektů">
+      ${segs.map(([k, l], i) => `<span class="seg ${k} ${active.includes(i) ? 'on' : ''}">${l}</span>`).join('')}
+    </div>
+    <p class="continuum-note">Kontinuum přístupů k řízení projektů (Krupa, Šimůnek a Hájek, 2023). Dočasná kombinace praktik při přechodu z jednoho přístupu na druhý není hybridní řízení.</p>`;
 }
 
 function sort() {
@@ -1297,10 +1315,10 @@ function kickoffRules() {
     ];
   }
   return [
-    `<b>Prediktivní část</b> (${t.predShort}) běží podle plánu. S tvým mixem se milníky splní, pokud udržíš <b>📅 Harmonogram ≥ ${milestoneThreshold()}</b>.`,
-    '<b>Agilní část</b>: na začátku každého sprintu vyber z backlogu položky do <b>kapacity týmu</b> (story pointy). Kapacitu ovlivňuje morálka i tvůj mix praktik.',
+    `<b>Prediktivně řízené prvky</b> (${t.predShort}) běží podle plánu. S tvým mixem se milníky splní, pokud udržíš <b>📅 Harmonogram ≥ ${milestoneThreshold()}</b>.`,
+    '<b>Agilně řízené prvky</b>: na začátku každého sprintu vyber z backlogu položky do <b>kapacity týmu</b> (story pointy). Kapacitu ovlivňuje morálka i tvůj mix praktik.',
     `Prioritizuj podle <b>MoSCoW</b>. Všechny <b>Must</b> položky musí být hotové do ${t.launch}.`,
-    `Některé položky na sobě závisí – a ${S.sc.dependency.hint} Tady se oba světy potkávají!`,
+    `Některé položky na sobě závisí – a ${S.sc.dependency.hint} Tady se oba přístupy v jednom projektu potkávají!`,
     'Během každého sprintu přijde <b>událost</b>. Některé volby odemyká jen správná praktika. V polovině projektu tě čeká <b>stage gate</b>.',
   ];
 }
@@ -1420,7 +1438,7 @@ function review() {
   const r = S.review;
   const m = r.milestone;
   const last = S.sprint >= periods();
-  const heading = { hybrid: 'Agilní část: co tým dodal', pred: 'Co se v etapě dokončilo', agile: 'Co tým dodal' }[AP()];
+  const heading = { hybrid: 'Agilně řízené prvky: co tým dodal', pred: 'Co se v etapě dokončilo', agile: 'Co tým dodal' }[AP()];
   const msPrefix = { hybrid: '📐 Prediktivní milník', pred: '📐 Milník', agile: '🎯 Cíl trakce' }[AP()];
   const gateLabel = AP() === 'agile' ? 'Na demo day 🎤' : AP() === 'pred' ? 'Na kontrolní den 🔍' : 'Na stage gate 🚦';
   return `

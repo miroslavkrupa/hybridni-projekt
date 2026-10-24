@@ -76,12 +76,12 @@ const PRACTICES = [
     mech: 'Vedení vidí přesný stav projektu. +5 😊 +3 💰',
     effects: { spokojenost: 5, rozpocet: 3 }, fits: ['jasne_zadani'] },
 
-  { id: 'sync', world: 'hybrid', icon: '🔄', name: 'Týdenní synchronizace obou částí', cost: 1, useIn: ['hybrid'],
-    desc: 'Vedoucí prediktivní i agilní části se každý týden sejdou nad závislostmi a riziky.',
-    mech: 'Negativní dopady událostí na rozhraní obou částí (🔗) jsou o 30 % menší. +3 ⭐',
+  { id: 'sync', world: 'hybrid', icon: '🔄', name: 'Týdenní synchronizace obou přístupů', cost: 1, useIn: ['hybrid'],
+    desc: 'Vedoucí prediktivně i agilně řízených prací se každý týden sejdou nad závislostmi a riziky.',
+    mech: 'Negativní dopady událostí na rozhraní obou přístupů (🔗) jsou o 30 % menší. +3 ⭐',
     effects: { kvalita: 3 }, softens: { track: 'both', factor: 0.7 }, fits: ['zavislost'] },
   { id: 'integrace', world: 'hybrid', icon: '🎯', name: 'Společné integrační milníky', cost: 1, useIn: ['hybrid'],
-    desc: 'V plánu jsou body, kdy se výstupy obou částí musí potkat a otestovat dohromady.',
+    desc: 'V plánu jsou body, kdy se výstupy prediktivně i agilně řízených prací musí potkat a otestovat dohromady.',
     mech: '+4 📅. Spolu se synchronizací snižuje laťku pro splnění milníků o 10.',
     effects: { harmonogram: 4 }, fits: ['zavislost'] },
   { id: 'dashboard', world: 'hybrid', icon: '📊', name: 'Transparentní dashboard pro výbor', cost: 1,
@@ -138,7 +138,7 @@ const PRACTICE_PAIRS = [
   { a: 'scrum', b: 'retro', type: 'syn', text: 'Sprinty s retrospektivou: tým se každé dva týdny učí.' },
   { a: 'kanban', b: 'retro', type: 'syn', text: 'Plynulý tok s pravidelným zlepšováním.' },
   { a: 'scrum', b: 'dod', type: 'syn', text: 'Přírůstky jsou opravdu hotové, ne „skoro hotové“.' },
-  { a: 'sync', b: 'integrace', type: 'syn', text: 'Integrační milníky, na které se obě části průběžně připravují.' },
+  { a: 'sync', b: 'integrace', type: 'syn', text: 'Integrační milníky, na které se prediktivně i agilně řízené práce průběžně připravují.' },
   { a: 'ccb', b: 'po', type: 'syn', text: 'Drahé změny posuzuje výbor, levné rozhoduje PO.' },
   { a: 'gate', b: 'dashboard', type: 'syn', text: 'Výbor rozhoduje podle skutečného stavu.' },
   { a: 'risk', b: 'plan', type: 'syn', text: 'Plán, který počítá s riziky.' },
@@ -162,10 +162,10 @@ const PRACTICE_PAIRS = [
 // Co by dobrý mix neměl vynechat – podle typu projektu (hodnotí se v „manažerském úsudku“).
 const ESSENTIALS = {
   hybrid: [
-    { name: 'Iterativní rámec agilní části', any: ['scrum', 'kanban'] },
+    { name: 'Iterativní rámec pro agilně řízené prvky', any: ['scrum', 'kanban'] },
     { name: 'Product Owner', any: ['po'] },
-    { name: 'Plán prediktivní části', any: ['plan', 'cpm'] },
-    { name: 'Propojení obou částí', any: ['sync', 'integrace'] },
+    { name: 'Plán pro prediktivně řízené prvky', any: ['plan', 'cpm'] },
+    { name: 'Propojení obou přístupů', any: ['sync', 'integrace'] },
     { name: 'Řízení rizik', any: ['risk'] },
     { name: 'Transparentní reporting', any: ['dashboard', 'gate'] },
   ],
@@ -264,7 +264,7 @@ const PATTERNS = [
     d: 'Výpadek člověka projekt neohrozí a výsledky půjde po projektu udržovat.',
   },
   {
-    id: 'water_scrum_fall', approaches: ['hybrid'], type: 'anti', icon: '🌊', name: 'Water-Scrum-Fall',
+    id: 'water_scrum_fall', approaches: ['hybrid'], type: 'anti', icon: '⛓️', name: 'Sprinty v betonu',
     when: c => (c.has('scrum') || c.has('kanban')) && c.has('detailgantt'), reveal: 2, perSprint: { moralka: -3, kvalita: -2 },
     story: 'Tým se ptá: „Proč děláme review, když termíny všech funkcí jsou stejně předem dané?“',
     k: 'Organizace zvyklá na detailní plánování zavádí agilní tým.',
@@ -374,7 +374,7 @@ const PATTERNS = [
   {
     id: 'hybrid_za_kazdou_cenu', approaches: ['pred', 'agile'], type: 'anti', icon: '🧩', name: 'Hybrid za každou cenu',
     when: c => c.has('sync') || c.has('integrace'), reveal: 1, once: { moralka: -3 },
-    story: 'Týdenní „synchronizace obou částí“ – jenže druhá část neexistuje. Porada trvá pět minut a všichni se ptají, proč tu jsou.',
+    story: 'Týdenní „synchronizace obou přístupů“ – jenže druhý přístup v projektu není. Porada trvá pět minut a všichni se ptají, proč tu jsou.',
     k: 'Projekt, který má jen jeden charakter (celý prediktivní nebo celý agilní).',
     f: 'Propojovací praktiky hybridního řízení, i když není co propojovat.',
     m: 'Koordinace rozhraní, které neexistuje, jen spotřebovává čas.',
@@ -668,7 +668,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'specialista', approaches: ['hybrid'], icon: '🧑‍🔧', track: 'both', title: 'Jeden specialista pro dva světy',
+    id: 'specialista', approaches: ['hybrid'], icon: '🧑‍🔧', track: 'both', title: 'Jeden specialista pro oba přístupy',
     text: 'Jediný bezpečnostní specialista má pracovat současně pro prediktivní i agilní část a nestíhá.',
     lesson: 'Sdílené zdroje jsou typické úzké hrdlo hybridních projektů. Plánuj je centrálně podle kritických milníků a předávej znalosti dál.',
     choices: [
@@ -2781,6 +2781,7 @@ const HPM_BOUNDARY = {
 
 const GLOSSARY = [
   ['Hybridní řízení projektů', `„${HPM_DEFINITION.cs}“<br><small>${HPM_DEFINITION.source}. Původní znění: <i>„${HPM_DEFINITION.en}“</i></small>`],
+  ['Kontinuum přístupů', 'Od čistě agilních přes upravené a kombinované agilní metodiky, hybridní řízení, kombinované a upravené tradiční metodiky až po čistě tradiční (Krupa, Šimůnek a Hájek, 2023). Hybrid leží uprostřed: kombinuje prvky tradičního i agilního přístupu v jednom projektu.'],
   ['Co hybridní řízení není', `${HPM_BOUNDARY.cs}<br><small>${HPM_BOUNDARY.source}. Původní znění: <i>„${HPM_BOUNDARY.en}“</i></small>`],
   ['Prediktivní přístup (vodopád)', 'Rozsah, čas a náklady se naplánují předem; fáze jdou po sobě. Vhodné pro jasné, stabilní požadavky (stavba, nákup).'],
   ['Agilní přístup', 'Práce v krátkých iteracích s častou zpětnou vazbou. Vhodné, když jsou požadavky nejisté nebo se vyvíjejí (software, design).'],
@@ -2809,7 +2810,8 @@ const GLOSSARY = [
   ['Vzorec / antivzorec', 'Opakující se řešení, které v daném kontextu vytváří hodnotu (vzorec), nebo naopak dysfunkci (antivzorec). Ve hře ho popisuje řetězec kontext → forma → mechanismus → důsledek.'],
   ['Režie řízení', 'Čas a energie, které stojí porady, reporty a schvalování. Každá praktika něco přináší, ale také něco stojí.'],
   ['WIP limit', 'Kanbanové omezení počtu rozpracovaných úkolů. Brání přetížení a urychluje dokončování.'],
-  ['Water-Scrum-Fall', 'Antivzorec: agilní sprinty sevřené detailním předem schváleným plánem. Rituály zůstanou, přínosy agility zmizí.'],
+  ['Water-Scrum-Fall', 'Hybridní model se vzorem TAT: tradiční fáze na začátku (požadavky, plán, smlouva), agilní sprinty uprostřed a tradiční fáze na konci (testy, převzetí). Krupa a Hájek (2024) ho řadí mezi 22 popsaných hybridních modelů.'],
+  ['Sprinty v betonu', 'Antivzorec: sprinty uvnitř plánu, kde má každá funkce předem pevný termín. Rituály zůstanou, přínosy agility zmizí. Neplést s Water-Scrum-Fall – ten fázuje celý životní cyklus, ale agilní vývoj uvnitř nechává pružný.'],
   ['Ganttův diagram', 'Časový plán úkolů jako pruhy na ose dní, včetně závislostí mezi nimi. Základní nástroj prediktivního plánování.'],
   ['Člověkoden (MD)', 'Jednotka pracnosti: práce jednoho člověka po jeden den. Úkol na 3 dny pro 2 lidi = 6 MD. V prediktivních projektech nahrazuje story pointy.'],
   ['Plánování po vlnách', 'Rolling wave planning: nejbližší etapa se plánuje podrobně, vzdálenější jen nahrubo (milníky, odhad pracnosti) a zpřesňují se postupně.'],
