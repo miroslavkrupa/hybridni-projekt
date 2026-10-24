@@ -1063,6 +1063,12 @@ function intro() {
       <p class="tagline">Namíchej správné řízení pro každý projekt</p>
       <p class="lead">Některé projekty se dají naplánovat dopředu, jiné se musí objevovat za pochodu a některé kombinují obojí. Univerzální recept neexistuje.</p>
     </div>
+    <div class="card definition">
+      <h3>Co je hybridní řízení projektů?</h3>
+      <blockquote>„${HPM_DEFINITION.cs}“</blockquote>
+      <p class="def-source">— ${HPM_DEFINITION.source}</p>
+      <details><summary>Původní znění</summary><blockquote lang="en">“${HPM_DEFINITION.en}”</blockquote></details>
+    </div>
     <h2 class="section-title">Co tě čeká</h2>
     <div class="tile-grid">
       ${steps.map(([t, d], i) => `<div class="tile"><span class="tile-num">${i + 1}</span><b>${t}</b><p>${d}</p></div>`).join('')}

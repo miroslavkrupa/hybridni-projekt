@@ -10,6 +10,22 @@ praktiky. Univerzální recept neexistuje.
 
 ▶ **[Hrát online](https://miroslavkrupa.github.io/hybridni-projekt/)**
 
+## Co je hybridní řízení projektů
+
+Hra vychází z definice:
+
+> *Hybrid project management is a project management approach combining elements of traditional
+> and agile project management to gain advantages and suppress the disadvantages of both to increase
+> project success. It balances flexibility, effectiveness, productivity, and project control. The
+> ability to customize the combination to the specific needs makes this approach suitable for project
+> management in various contexts.*
+>
+> — Krupa, M., Šimůnek, D. & Hájek, J. (2023). *Hybrid Project Management: A Literature Review.* HED 2023.
+
+Hybridní řízení přitom není přizpůsobení (tailoring) agilního nebo tradičního přístupu, kombinace
+praktik v rámci jednoho z nich, ani dočasná kombinace během přechodu od jednoho přístupu k druhému.
+Proto hra obsahuje i čistě prediktivní a čistě agilní projekty.
+
 ## Scénáře
 
 | Scénář | Typ | Čím je zajímavý |

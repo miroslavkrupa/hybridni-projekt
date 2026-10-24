@@ -2766,8 +2766,22 @@ const SKILLS = {
   jerab: { icon: '🏗️', label: 'Jeřáb' },
 };
 
+// Definice hybridního řízení projektů – doslova z: Krupa, M., Šimůnek, D. & Hájek, J. (2023).
+// Hybrid Project Management: A Literature Review. HED 2023. Český text je překlad.
+const HPM_DEFINITION = {
+  en: 'Hybrid project management is a project management approach combining elements of traditional and agile project management to gain advantages and suppress the disadvantages of both to increase project success. It balances flexibility, effectiveness, productivity, and project control. The ability to customize the combination to the specific needs makes this approach suitable for project management in various contexts.',
+  cs: 'Hybridní řízení projektů je přístup k řízení projektů kombinující prvky tradičního a agilního řízení projektů s cílem získat výhody a potlačit nevýhody obou, a zvýšit tak úspěšnost projektu. Vyvažuje flexibilitu, efektivitu, produktivitu a kontrolu nad projektem. Schopnost přizpůsobit kombinaci konkrétním potřebám činí tento přístup vhodným pro řízení projektů v různých kontextech.',
+  source: 'Krupa, Šimůnek a Hájek (2023): Hybrid Project Management: A Literature Review, HED 2023',
+};
+const HPM_BOUNDARY = {
+  en: 'HPM is not tailoring APM or TPM, nor is it a combination of practices within one of them, nor is it a temporary combination of practices during the transition from one approach to the other.',
+  cs: 'Hybridní řízení projektů není přizpůsobení (tailoring) agilního nebo tradičního přístupu, není to kombinace praktik v rámci jednoho z nich a není to ani dočasná kombinace praktik během přechodu od jednoho přístupu k druhému.',
+  source: 'Krupa, Šimůnek a Hájek (2023), HED 2023',
+};
+
 const GLOSSARY = [
-  ['Hybridní řízení projektů', 'Kombinace prediktivního (plánovaného) a agilního přístupu v jednom projektu. Každá část se řídí tím přístupem, který jí sedí.'],
+  ['Hybridní řízení projektů', `„${HPM_DEFINITION.cs}“<br><small>${HPM_DEFINITION.source}. Původní znění: <i>„${HPM_DEFINITION.en}“</i></small>`],
+  ['Co hybridní řízení není', `${HPM_BOUNDARY.cs}<br><small>${HPM_BOUNDARY.source}. Původní znění: <i>„${HPM_BOUNDARY.en}“</i></small>`],
   ['Prediktivní přístup (vodopád)', 'Rozsah, čas a náklady se naplánují předem; fáze jdou po sobě. Vhodné pro jasné, stabilní požadavky (stavba, nákup).'],
   ['Agilní přístup', 'Práce v krátkých iteracích s častou zpětnou vazbou. Vhodné, když jsou požadavky nejisté nebo se vyvíjejí (software, design).'],
   ['Scrum', 'Agilní rámec: sprinty, role (Product Owner, Scrum Master, vývojáři) a události (plánování, daily, review, retrospektiva).'],
