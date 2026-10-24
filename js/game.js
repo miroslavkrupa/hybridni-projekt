@@ -1039,44 +1039,46 @@ function timeline() {
 function intro() {
   const atlas = getAtlas();
   const unlocked = hardUnlocked();
-  const card = sc => {
+  const row = sc => {
     const rec = getRecord(sc.id);
     const locked = sc.level === 'hard' && !unlocked;
     return `
-      <button class="scenario card ${sc.level === 'hard' ? 'hard' : ''} ${locked ? 'locked' : ''}" data-action="pickScenario" data-id="${sc.id}" ${locked ? 'disabled' : ''}>
-        <span class="sc-icon">${locked ? '🔒' : sc.icon}</span>
-        <b>${sc.name}</b>
-        <span class="sc-tag">${sc.tagline}</span>
-        <span class="sc-rec">${locked ? 'Zamčeno' : rec ? `🏅 Tvůj rekord: ${rec} bodů` : 'Zatím nehráno'}</span>
+      <button class="project-row ${sc.level === 'hard' ? 'hard' : ''} ${locked ? 'locked' : ''}" data-action="pickScenario" data-id="${sc.id}" ${locked ? 'disabled' : ''}>
+        <span class="pr-icon">${locked ? '🔒' : sc.icon}</span>
+        <span class="pr-main"><b>${sc.name}</b><small>${sc.tagline}</small></span>
+        <span class="pr-meta">${locked ? 'Zamčeno' : rec ? `🏅 ${rec} bodů` : 'Zatím nehráno'}</span>
+        <span class="pr-go" aria-hidden="true">${locked ? '' : '▶'}</span>
       </button>`;
   };
-  const normal = SCENARIOS.filter(sc => sc.level !== 'hard').map(card).join('');
-  const hard = SCENARIOS.filter(sc => sc.level === 'hard').map(card).join('');
+  const steps = [
+    ['Rozděl práci', 'Co řídit prediktivně a co agilně? A je to vůbec hybrid?'],
+    ['Slož mix praktik', 'Karty se synergiemi, konflikty a omezenou režií.'],
+    ['Řiď projekt', 'Sprint po sprintu, nebo etapu po etapě. Plánuj, řeš krize, hlídej milníky.'],
+    ['Odhal vzorce', 'Co tvůj mix v projektu doopravdy způsobil – dobré i špatné.'],
+  ];
   return `
-    <div class="hero card">
-      <img class="hero-art" src="img/alchymie.svg" alt="Projektový manažer jako alchymista vaří v kotli projektovou metodiku" width="600" height="420">
+    <div class="hero card intro-hero">
+      <img class="hero-art" src="img/alchymie.svg" alt="Projektový manažer jako alchymista míchá v kotli projektovou metodiku" width="600" height="400">
       <h1>Projektová alchymie</h1>
       <p class="tagline">Namíchej správné řízení pro každý projekt</p>
-      <p class="lead">Staneš se projektovým manažerem. Některé projekty se dají naplánovat dopředu, jiné se musí objevovat za pochodu a některé kombinují obojí.</p>
-      <p>Univerzální recept neexistuje. Prvním úkolem je <b>poznat, jaký přístup projektu sedí</b> – prediktivní, agilní, nebo hybridní – a pak k němu namíchat správné praktiky.</p>
-      <h3>Co tě čeká</h3>
-      <ol class="steps">
-        <li><b>Rozděl práci</b> – co řídit prediktivně a co agilně? A je to vůbec hybrid?</li>
-        <li><b>Slož mix praktik</b> – karty se synergiemi, konflikty a omezenou režií.</li>
-        <li><b>Řiď projekt</b> – sprint po sprintu, nebo etapu po etapě: plánuj práci, řeš krize, hlídej milníky.</li>
-        <li><b>Odhal vzorce a antivzorce</b> – co tvůj mix v projektu doopravdy způsobil.</li>
-      </ol>
-      <p class="hint">Každá hra vylosuje jiné události a odpovědi jsou pokaždé v jiném pořadí.</p>
-      <button class="btn" data-action="atlas">🗺️ Atlas vzorců: ${atlas.length} / ${PATTERNS.length} objeveno</button>
+      <p class="lead">Některé projekty se dají naplánovat dopředu, jiné se musí objevovat za pochodu a některé kombinují obojí. Univerzální recept neexistuje.</p>
     </div>
-    <h2 class="pick-title">Vyber si projekt</h2>
+    <h2 class="section-title">Co tě čeká</h2>
+    <div class="tile-grid">
+      ${steps.map(([t, d], i) => `<div class="tile"><span class="tile-num">${i + 1}</span><b>${t}</b><p>${d}</p></div>`).join('')}
+    </div>
+    <div class="tile-grid two">
+      <div class="tile soft"><b>🎲 Pokaždé jinak</b><p>Každá hra vylosuje jiné události a odpovědi jsou pokaždé v jiném pořadí.</p></div>
+      <button class="tile soft tile-btn" data-action="atlas"><b>🗺️ Atlas vzorců</b><p>Objeveno ${atlas.length} z ${PATTERNS.length} vzorců a antivzorců.</p></button>
+    </div>
+    <h2 class="section-title">Vyber si projekt</h2>
     <h3 class="level-title">Úroveň Normal</h3>
-    <div class="scenario-grid">${normal}</div>
+    <div class="project-list">${SCENARIOS.filter(sc => sc.level !== 'hard').map(row).join('')}</div>
     <h3 class="level-title hard">🔥 Úroveň Hard</h3>
     <p class="hint level-hint">${unlocked
       ? 'Méně zdrojů, skrytý faktor, změna kontextu uprostřed projektu a rozhodnutí, která se vrací. Projekt končí už při poklesu ukazatele na 10.'
       : `Odemkne se, až v kterémkoli projektu úrovně Normal dosáhneš alespoň ${HARD_UNLOCK_SCORE} bodů.`}</p>
-    <div class="scenario-grid">${hard}</div>`;
+    <div class="project-list">${SCENARIOS.filter(sc => sc.level === 'hard').map(row).join('')}</div>`;
 }
 
 function brief() {

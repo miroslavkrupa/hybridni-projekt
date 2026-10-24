@@ -1,246 +1,270 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-labelledby="t">
-  <title id="t">Projektový manažer jako alchymista vaří v kotli projektovou metodiku</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-labelledby="t">
+  <title id="t">Projektový manažer jako alchymista míchá v kotli projektovou metodiku – rychlá kresba uhlem</title>
   <defs>
-    <clipPath id="frame"><rect width="600" height="420" rx="22"/></clipPath>
-    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#211d36"/>
-      <stop offset="1" stop-color="#15121f"/>
-    </linearGradient>
-    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1c1828"/>
-      <stop offset="1" stop-color="#0e0c14"/>
-    </linearGradient>
-    <linearGradient id="windowGlass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#4a5a9e"/>
-      <stop offset="1" stop-color="#232b55"/>
-    </linearGradient>
-    <radialGradient id="potion" cx=".5" cy=".5" r=".6">
-      <stop offset="0" stop-color="#c8fff4"/>
-      <stop offset=".35" stop-color="#5fe0c8"/>
-      <stop offset=".8" stop-color="#1f9d8a"/>
-      <stop offset="1" stop-color="#0f5249"/>
-    </radialGradient>
-    <radialGradient id="potionGlow" cx=".5" cy=".5" r=".5">
-      <stop offset="0" stop-color="#5fe0c8" stop-opacity=".55"/>
-      <stop offset="1" stop-color="#5fe0c8" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="fireGlow" cx=".5" cy=".5" r=".5">
-      <stop offset="0" stop-color="#ff9a3d" stop-opacity=".6"/>
-      <stop offset="1" stop-color="#ff9a3d" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="iron" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#2a2638"/>
-      <stop offset=".45" stop-color="#3b3650"/>
-      <stop offset="1" stop-color="#16141d"/>
-    </linearGradient>
-    <linearGradient id="ironBottom" x1="0" y1="0" x2="0" y2="1">
-      <stop offset=".55" stop-color="#ff8a3d" stop-opacity="0"/>
-      <stop offset="1" stop-color="#ff8a3d" stop-opacity=".45"/>
-    </linearGradient>
-    <linearGradient id="robe" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#1c1838"/>
-      <stop offset=".6" stop-color="#2f2862"/>
-      <stop offset="1" stop-color="#3f3a86"/>
-    </linearGradient>
-    <linearGradient id="robeLit" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#5fe0c8" stop-opacity="0"/>
-      <stop offset="1" stop-color="#5fe0c8" stop-opacity=".35"/>
-    </linearGradient>
-    <linearGradient id="hood" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2a2452"/>
-      <stop offset="1" stop-color="#3d3780"/>
-    </linearGradient>
-    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#5a3d33"/>
-      <stop offset=".55" stop-color="#b98468"/>
-      <stop offset="1" stop-color="#d9b29a"/>
-    </linearGradient>
-    <linearGradient id="hand" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#c29077"/>
-      <stop offset="1" stop-color="#8fd9cb"/>
-    </linearGradient>
-    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#d9481c"/>
-      <stop offset=".5" stop-color="#ff8a3d"/>
-      <stop offset="1" stop-color="#ffd27a"/>
-    </linearGradient>
-    <linearGradient id="parchment" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f1e3c4"/>
-      <stop offset="1" stop-color="#cdb68c"/>
-    </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <!-- uhel: roztřesená linka + zrno papíru -->
+    <filter id="charcoal" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="11" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="wobbly"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="5" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.05 1.5" result="grainAlpha"/>
+      <feComposite in="wobbly" in2="grainAlpha" operator="in"/>
     </filter>
-    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="10"/>
+    <!-- rozmazaný uhlový prach pro tóny a stíny -->
+    <filter id="dust" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="soft"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="8" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.9 1.4" result="grainAlpha"/>
+      <feComposite in="soft" in2="grainAlpha" operator="in"/>
+    </filter>
+    <filter id="dustFine" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="soft"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.9 1.4" result="grainAlpha"/>
+      <feComposite in="soft" in2="grainAlpha" operator="in"/>
+    </filter>
+    <clipPath id="frame"><rect width="600" height="400" rx="18"/></clipPath>
+    <filter id="paper">
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed="2"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.3  0 0 0 0 0.27  0 0 0 0 0.22  0 0 0 0.07 0"/>
     </filter>
   </defs>
 
+  <!-- papír -->
+  <rect width="600" height="400" rx="18" fill="#f5f0e6"/>
+  <rect width="600" height="400" rx="18" filter="url(#paper)"/>
+
   <g clip-path="url(#frame)">
-    <!-- dílna: stěna, kameny, podlaha -->
-    <rect width="600" height="420" fill="url(#wall)"/>
-    <g fill="none" stroke="#ffffff" stroke-opacity=".045" stroke-width="2">
-      <path d="M0 60 H600 M0 125 H600 M0 190 H600 M0 255 H600"/>
-      <path d="M70 0 V60 M210 0 V60 M350 0 V60 M500 0 V60 M140 60 V125 M290 60 V125 M430 60 V125 M560 60 V125 M60 125 V190 M240 125 V190 M400 125 V190 M520 125 V190 M120 190 V255 M300 190 V255 M470 190 V255"/>
-    </g>
-    <rect y="320" width="600" height="100" fill="url(#floor)"/>
-    <path d="M0 320 H600" stroke="#ffffff" stroke-opacity=".06" stroke-width="2"/>
+  <!-- ===== TÓNY: rozmazaný uhel ===== -->
+  <g fill="#262421" filter="url(#dust)">
+    <!-- šero dílny za kouřem a v rozích -->
+    <ellipse cx="560" cy="40" rx="120" ry="80" opacity=".16"/>
+    <ellipse cx="30" cy="250" rx="70" ry="160" opacity=".10"/>
+    <!-- kouř z kotle -->
+    <ellipse cx="378" cy="160" rx="62" ry="36" opacity=".16"/>
+    <ellipse cx="428" cy="104" rx="78" ry="42" opacity=".2"/>
+    <ellipse cx="490" cy="58" rx="72" ry="34" opacity=".17"/>
+    <!-- stín pod kotlem a postavou -->
+    <ellipse cx="392" cy="378" rx="170" ry="14" opacity=".42"/>
+    <ellipse cx="208" cy="366" rx="96" ry="10" opacity=".35"/>
+    <!-- stín pod policí -->
+    <rect x="18" y="72" width="120" height="16" opacity=".2"/>
+  </g>
+  <g fill="#262421" filter="url(#dustFine)">
+    <!-- kotel: celkový tón a tmavá strana -->
+    <path d="M266 220 C260 300 318 350 392 352 C466 350 524 300 518 220 Q470 246 392 246 Q314 246 266 220 Z" opacity=".22"/>
+    <path d="M430 246 C470 244 510 232 518 220 C524 300 466 350 392 352 C440 330 456 290 430 246 Z" opacity=".55"/>
+    <!-- zadní vnitřní stěna okraje -->
+    <path d="M282 210 Q392 186 502 210 Q392 200 282 210 Z" opacity=".5"/>
+    <!-- vnitřek kápě za tváří -->
+    <path d="M216 104 C226 106 232 114 230 124 C228 136 228 148 230 158 C220 160 212 152 210 140 C208 126 208 112 216 104 Z" opacity=".85"/>
+    <!-- stinná (zadní) strana pláště a kápě -->
+    <path d="M180 170 C168 230 156 300 136 358 C150 358 160 360 172 362 C176 300 184 236 196 176 Z" opacity=".42"/>
+    <path d="M196 156 C186 140 186 116 200 104 C192 120 194 140 204 156 Z" opacity=".4"/>
+    <path d="M196 262 C194 300 194 330 196 360 L208 360 C208 330 208 300 210 262 Z" opacity=".2"/>
+    <!-- stín pod rukávy -->
+    <path d="M246 214 C268 210 288 200 306 186 C302 200 280 214 252 224 Z" opacity=".45"/>
+    <path d="M246 196 C262 184 276 170 288 166 C282 178 266 192 250 202 Z" opacity=".3"/>
+    <!-- stín pod nádobami na polici -->
+    <path d="M24 70 L134 70 L130 78 L28 78 Z" opacity=".3"/>
+  </g>
 
-    <!-- okno s měsícem za postavou -->
-    <path d="M26 156 V84 Q76 26 126 84 V156 Z" fill="url(#windowGlass)"/>
-    <circle cx="58" cy="76" r="12" fill="#e8ecff" opacity=".9"/>
-    <circle cx="63" cy="72" r="11" fill="#3f4d8f" opacity=".75"/>
-    <path d="M76 42 V156 M26 112 H126" stroke="#15121f" stroke-width="5"/>
-    <path d="M26 156 V84 Q76 26 126 84 V156" fill="none" stroke="#2c2740" stroke-width="7"/>
-    <path d="M20 160 H132" stroke="#2c2740" stroke-width="8" stroke-linecap="round"/>
-    <path d="M30 156 L120 330 L190 330 L126 156 Z" fill="#9fb0ff" opacity=".04"/>
+  <!-- ===== KRESBA: linky uhlem ===== -->
+  <g filter="url(#charcoal)" fill="none" stroke="#1f1d1a" stroke-linecap="round" stroke-linejoin="round">
 
-    <!-- police s lahvičkami, knihami a přesýpacími hodinami -->
-    <g>
-      <rect x="462" y="128" width="130" height="7" rx="2" fill="#4a3a2c"/>
-      <rect x="462" y="212" width="130" height="7" rx="2" fill="#4a3a2c"/>
-      <path d="M476 128 V112 Q476 104 482 104 V96 H488 V104 Q494 104 494 112 V128 Z" fill="#6a3d8f" opacity=".85"/>
-      <rect x="480" y="92" width="10" height="5" rx="1" fill="#8a6a4c"/>
-      <circle cx="514" cy="117" r="11" fill="#1f9d8a" opacity=".8"/>
-      <rect x="510" y="96" width="8" height="12" fill="#1f9d8a" opacity=".8"/>
-      <circle cx="514" cy="117" r="11" fill="none" stroke="#ffffff" stroke-opacity=".25"/>
-      <rect x="536" y="98" width="12" height="30" rx="2" fill="#7b2d3a"/>
-      <rect x="549" y="102" width="10" height="26" rx="2" fill="#3e5a8a"/>
-      <rect x="560" y="95" width="13" height="33" rx="2" fill="#8a6a2c"/>
-      <rect x="538" y="104" width="8" height="2" fill="#d9b25a" opacity=".7"/>
-      <rect x="562" y="102" width="9" height="2" fill="#f1e3c4" opacity=".6"/>
-      <!-- přesýpací hodiny -->
-      <rect x="474" y="176" width="30" height="5" rx="2" fill="#8a6a4c"/>
-      <rect x="474" y="207" width="30" height="5" rx="2" fill="#8a6a4c"/>
-      <path d="M479 181 Q479 194 489 194 Q499 194 499 181 Z" fill="#cfe7ff" opacity=".35"/>
-      <path d="M479 207 Q479 194 489 194 Q499 194 499 207 Z" fill="#cfe7ff" opacity=".35"/>
-      <path d="M483 207 Q489 197 495 207 Z" fill="#d9b25a"/>
-      <path d="M486 184 L492 184 L489 190 Z" fill="#d9b25a"/>
-      <!-- svitek -->
-      <rect x="520" y="194" width="58" height="16" rx="8" fill="url(#parchment)"/>
-      <circle cx="528" cy="202" r="8" fill="#b89d70"/>
-      <rect x="538" y="199" width="26" height="2.5" rx="1" fill="#7a5a3a" opacity=".6"/>
-      <rect x="538" y="204" width="18" height="2.5" rx="1" fill="#7a5a3a" opacity=".6"/>
+    <!-- hledací (konstrukční) linky – nechané v kresbě -->
+    <g stroke-width="0.8" opacity=".3">
+      <path d="M100 362 L560 362"/>
+      <path d="M214 92 L200 362" />
+      <ellipse cx="392" cy="214" rx="140" ry="32"/>
     </g>
 
-    <!-- záře ohně a lektvaru -->
-    <ellipse cx="368" cy="350" rx="170" ry="40" fill="url(#fireGlow)"/>
-    <ellipse cx="368" cy="215" rx="190" ry="120" fill="url(#potionGlow)"/>
-
-    <!-- oheň -->
-    <g>
-      <rect x="312" y="350" width="112" height="13" rx="6" fill="#3a2418" transform="rotate(-5 368 356)"/>
-      <rect x="316" y="352" width="106" height="12" rx="6" fill="#4a2e1e" transform="rotate(6 368 356)"/>
-      <g filter="url(#glow)">
-        <path d="M326 354 C318 336 332 326 330 310 C344 322 350 340 340 354 Z" fill="url(#flame)"/>
-        <path d="M352 356 C340 330 360 312 356 290 C380 310 388 336 376 356 Z" fill="url(#flame)"/>
-        <path d="M386 354 C380 336 392 326 392 312 C406 324 410 342 400 354 Z" fill="url(#flame)"/>
-      </g>
+    <!-- podlaha: prkna -->
+    <g stroke-width="1" opacity=".45">
+      <path d="M40 364 Q300 358 580 366"/>
+      <path d="M20 382 Q140 378 250 384"/>
+      <path d="M520 386 Q560 384 590 388"/>
+      <path d="M90 364 L70 396"/><path d="M560 366 L578 396"/>
     </g>
 
-    <!-- kotel -->
-    <ellipse cx="320" cy="338" rx="12" ry="7" fill="#100e16"/>
-    <ellipse cx="416" cy="338" rx="12" ry="7" fill="#100e16"/>
-    <path d="M262 236 Q258 304 312 334 L424 334 Q478 304 474 236 Q440 254 368 254 Q296 254 262 236 Z" fill="url(#iron)"/>
-    <path d="M262 236 Q258 304 312 334 L424 334 Q478 304 474 236 Q440 254 368 254 Q296 254 262 236 Z" fill="url(#ironBottom)"/>
-    <path d="M276 262 Q282 300 316 322" stroke="#5fe0c8" stroke-opacity=".18" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <ellipse cx="368" cy="236" rx="110" ry="21" fill="#2f2b40"/>
-    <ellipse cx="368" cy="236" rx="110" ry="21" fill="none" stroke="#8fe9da" stroke-opacity=".45" stroke-width="2"/>
-    <ellipse cx="368" cy="234" rx="95" ry="14" fill="url(#potion)"/>
-    <path d="M300 233 Q330 226 360 233 T430 231" stroke="#ffffff" stroke-opacity=".45" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <circle cx="398" cy="231" r="3.5" fill="#e6fffa" opacity=".9"/>
-    <circle cx="336" cy="238" r="2.5" fill="#e6fffa" opacity=".8"/>
-    <circle cx="416" cy="238" r="2" fill="#e6fffa" opacity=".8"/>
+    <!-- police s nádobami (vlevo nahoře) -->
+    <path d="M20 70 L136 70" stroke-width="2.6"/>
+    <path d="M22 74 L134 74" stroke-width="1" opacity=".6"/>
+    <path d="M30 70 L36 88 M126 70 L120 88" stroke-width="1.4"/>
+    <!-- baňka -->
+    <path d="M40 70 C26 68 24 46 38 40 L38 26 L46 26 L46 40 C60 46 58 68 44 70" stroke-width="2"/>
+    <path d="M36 24 L48 24" stroke-width="2.4"/>
+    <path d="M32 58 Q42 52 52 58" stroke-width="1" opacity=".7"/>
+    <!-- vysoká lahev -->
+    <path d="M66 70 L66 38 C66 32 70 30 72 26 L72 18 L78 18 L78 26 C80 30 84 32 84 38 L84 70" stroke-width="2"/>
+    <path d="M70 44 L70 66 M74 44 L74 66" stroke-width="0.9" opacity=".6"/>
+    <!-- přesýpací hodiny -->
+    <path d="M94 34 L114 34 M94 70 L114 70 M96 34 C96 50 112 52 112 52 C112 52 96 56 96 70 M112 34 C112 50 96 52 96 52 C96 52 112 56 112 70" stroke-width="1.8"/>
+    <path d="M100 66 Q104 58 108 66" stroke-width="1.2"/>
+    <!-- svitek -->
+    <path d="M118 70 L118 58 Q118 52 124 52 L132 52 Q136 52 136 58 L136 70" stroke-width="1.6"/>
 
-    <!-- pára a znamení metodik -->
-    <g fill="none" stroke-linecap="round">
-      <path d="M352 222 C336 196 366 182 350 152 C338 128 360 112 350 88" stroke="#9ff0e3" stroke-opacity=".22" stroke-width="10" filter="url(#soft)"/>
-      <path d="M390 222 C404 200 382 186 398 160 C410 140 396 124 404 104" stroke="#9ff0e3" stroke-opacity=".18" stroke-width="8" filter="url(#soft)"/>
-      <path d="M352 222 C340 200 362 186 350 158" stroke="#bff6ec" stroke-opacity=".35" stroke-width="2"/>
-      <path d="M390 222 C400 204 386 190 396 170" stroke="#bff6ec" stroke-opacity=".3" stroke-width="2"/>
+    <!-- ===== KOTEL ===== -->
+    <!-- tělo -->
+    <path d="M264 220 C258 302 316 352 392 354 C468 352 526 302 520 220" stroke-width="3.4"/>
+    <path d="M270 228 C268 298 322 344 392 346" stroke-width="1.1" opacity=".55"/>
+    <!-- okraj: silný lem -->
+    <ellipse cx="392" cy="212" rx="130" ry="27" stroke-width="3.2"/>
+    <ellipse cx="392" cy="215" rx="114" ry="19" stroke-width="2"/>
+    <path d="M266 216 Q392 252 518 216" stroke-width="1.2" opacity=".6"/>
+    <!-- pás s nýty -->
+    <path d="M270 248 C330 272 454 272 514 248" stroke-width="2.2"/>
+    <path d="M272 258 C332 282 452 282 512 258" stroke-width="2.2"/>
+    <g stroke-width="1.6">
+      <circle cx="292" cy="258" r="2.4"/><circle cx="326" cy="266" r="2.4"/><circle cx="362" cy="270" r="2.4"/>
+      <circle cx="398" cy="271" r="2.4"/><circle cx="434" cy="269" r="2.4"/><circle cx="468" cy="264" r="2.4"/><circle cx="498" cy="256" r="2.4"/>
     </g>
-    <g filter="url(#glow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <!-- sprint: smyčka se šipkou -->
-      <path d="M322 120 A22 22 0 1 1 344 142" stroke="#9ff0e3" stroke-width="3"/>
-      <path d="M350 135 L343 142 L350 149" stroke="#9ff0e3" stroke-width="3"/>
-      <!-- Gantt: pruhy na časové ose -->
-      <path d="M392 64 V108 H448" stroke="#ffd27a" stroke-opacity=".7" stroke-width="1.6"/>
-      <path d="M400 74 H420 M412 86 H436 M426 98 H444" stroke="#ffd27a" stroke-width="5"/>
-      <!-- kanban: sloupce s kartičkami -->
-      <rect x="430" y="140" width="9" height="9" rx="1.5" stroke="#c8bfff" stroke-width="2"/>
-      <rect x="430" y="153" width="9" height="9" rx="1.5" stroke="#c8bfff" stroke-width="2"/>
-      <rect x="443" y="140" width="9" height="9" rx="1.5" stroke="#c8bfff" stroke-width="2"/>
-      <rect x="456" y="140" width="9" height="9" rx="1.5" stroke="#c8bfff" stroke-width="2"/>
-      <rect x="456" y="153" width="9" height="9" rx="1.5" stroke="#c8bfff" stroke-width="2"/>
-      <rect x="456" y="166" width="9" height="9" rx="1.5" stroke="#c8bfff" stroke-width="2"/>
+    <!-- uši kotle -->
+    <path d="M266 236 C246 230 238 254 252 262 C258 266 264 262 268 256" stroke-width="2.6"/>
+    <path d="M518 236 C538 230 546 254 532 262 C526 266 520 262 516 256" stroke-width="2.6"/>
+    <!-- drápovité nohy -->
+    <path d="M320 344 C316 356 310 364 300 370 M310 366 L296 374 M306 368 L304 378 M312 366 L318 376" stroke-width="2.4"/>
+    <path d="M466 344 C470 356 476 364 486 370 M476 366 L490 374 M480 368 L482 378 M474 366 L468 376" stroke-width="2.4"/>
+    <!-- šrafura: tmavá strana a křížové šrafy -->
+    <g stroke-width="1" opacity=".75">
+      <path d="M470 282 L486 300"/><path d="M462 292 L482 316"/><path d="M452 302 L472 326"/><path d="M440 312 L458 334"/>
+      <path d="M478 270 L494 288"/><path d="M490 262 L504 278"/><path d="M500 252 L510 264"/><path d="M426 322 L442 340"/>
     </g>
-    <!-- jiskry a částice -->
-    <g fill="#e6fffa" filter="url(#glow)">
-      <circle cx="318" cy="186" r="1.8"/><circle cx="334" cy="168" r="1.4"/><circle cx="410" cy="196" r="1.6"/>
-      <circle cx="378" cy="150" r="1.2"/><circle cx="300" cy="150" r="1.3"/><circle cx="424" cy="122" r="1.5"/>
-      <circle cx="372" cy="56" r="1.4"/><circle cx="452" cy="196" r="1.2"/>
+    <g stroke-width="0.8" opacity=".55">
+      <path d="M486 284 L466 304"/><path d="M496 276 L470 310"/><path d="M482 306 L460 330"/><path d="M506 262 L486 288"/>
     </g>
-    <g fill="#ffd27a" filter="url(#glow)">
-      <circle cx="310" cy="206" r="1.6"/><circle cx="292" cy="196" r="1.2"/><circle cx="302" cy="186" r="1"/>
+    <!-- hladina: víry a bubliny -->
+    <path d="M296 214 Q330 202 362 212 T426 210 T484 214" stroke-width="1.6"/>
+    <path d="M322 222 Q352 230 384 222 T444 222" stroke-width="1" opacity=".6"/>
+    <circle cx="410" cy="206" r="5" stroke-width="1.6"/><circle cx="436" cy="216" r="3" stroke-width="1.3"/>
+    <circle cx="384" cy="218" r="2.5" stroke-width="1.2"/><circle cx="460" cy="208" r="3.5" stroke-width="1.4"/>
+    <path d="M404 200 Q410 194 416 200" stroke-width="1.2"/>
+
+    <!-- oheň a polena -->
+    <path d="M300 384 L486 370" stroke-width="5"/>
+    <path d="M304 372 L478 388" stroke-width="5"/>
+    <path d="M300 384 L486 370 M304 372 L478 388" stroke="#f5f0e6" stroke-width="1.6" opacity=".6"/>
+    <path d="M346 372 C338 356 350 346 348 330 C362 344 366 358 358 372" stroke-width="1.8"/>
+    <path d="M372 374 C360 350 380 336 374 312 C398 332 404 356 392 374" stroke-width="2.2"/>
+    <path d="M410 372 C404 356 416 348 416 334 C428 346 430 362 422 372" stroke-width="1.8"/>
+    <path d="M436 370 C432 360 440 354 440 346 C448 354 450 364 444 370" stroke-width="1.4"/>
+    <g stroke-width="1.6"><path d="M362 318 L362 321"/><path d="M398 306 L399 309"/><path d="M420 322 L421 324"/><path d="M386 296 L386 298"/></g>
+
+    <!-- vařečka (dvojitá linka dřeva) -->
+    <path d="M270 108 L352 230" stroke-width="2.6"/>
+    <path d="M278 104 L358 226" stroke-width="2.6"/>
+    <path d="M268 104 Q272 96 280 100 L278 104" stroke-width="2"/>
+    <path d="M276 118 L284 130 M328 196 L336 208" stroke-width="0.8" opacity=".6"/>
+    <!-- vlnky kolem ponořené vařečky -->
+    <ellipse cx="354" cy="230" rx="18" ry="4.5" stroke-width="1.4"/>
+    <ellipse cx="354" cy="231" rx="30" ry="7" stroke-width="0.9" opacity=".55"/>
+
+    <!-- obrysy kouře -->
+    <g stroke-width="1.4" opacity=".7">
+      <path d="M352 196 C330 186 330 160 352 152 C356 132 384 128 398 140"/>
+      <path d="M398 140 C404 112 434 98 456 108 C470 86 506 82 520 98"/>
+      <path d="M520 98 C540 92 556 104 550 120"/>
+      <path d="M412 196 C428 182 440 168 432 150"/>
+      <path d="M470 120 C486 128 500 124 506 112"/>
     </g>
 
-    <!-- vznášející se kniha receptů s Ganttem -->
-    <g transform="rotate(-8 262 96)" filter="url(#glow)">
-      <path d="M220 86 Q240 78 262 86 L262 120 Q240 112 220 120 Z" fill="url(#parchment)"/>
-      <path d="M262 86 Q284 78 304 86 L304 120 Q284 112 262 120 Z" fill="url(#parchment)"/>
-      <path d="M218 88 V123 Q240 115 262 123 Q284 115 306 123 V88" fill="none" stroke="#5a3a26" stroke-width="2.5"/>
-      <path d="M262 86 V120" stroke="#8a6a4c" stroke-width="1"/>
-      <path d="M228 92 H240 M234 98 H250 M242 104 H254 M228 110 H246" stroke="#6a4a32" stroke-width="2.4" stroke-linecap="round"/>
-      <path d="M270 92 H296 M270 98 H290 M270 104 H298 M270 110 H284" stroke="#6a4a32" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>
-    </g>
-
-    <!-- alchymista (projektový manažer) -->
-    <ellipse cx="160" cy="398" rx="96" ry="12" fill="#000000" opacity=".35"/>
-    <!-- plášť -->
-    <path d="M114 170 Q98 270 66 398 L246 398 Q226 300 218 192 Q206 162 164 160 Q128 160 114 170 Z" fill="url(#robe)"/>
-    <path d="M114 170 Q98 270 66 398 L246 398 Q226 300 218 192 Q206 162 164 160 Q128 160 114 170 Z" fill="url(#robeLit)"/>
-    <path d="M130 196 Q124 290 104 392" stroke="#000000" stroke-opacity=".25" stroke-width="10" fill="none" stroke-linecap="round"/>
-    <path d="M168 196 Q170 300 158 392" stroke="#000000" stroke-opacity=".18" stroke-width="7" fill="none" stroke-linecap="round"/>
-    <!-- zlatý lem a pás -->
-    <path d="M198 176 Q206 280 220 396" stroke="#c9a24a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <path d="M112 270 Q166 284 222 266" stroke="#c9a24a" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <circle cx="196" cy="276" r="6" fill="#d9b25a"/>
-    <circle cx="196" cy="276" r="2.5" fill="#7a5a2a"/>
-    <!-- visačka projektového manažera -->
-    <path d="M182 178 L190 222 L198 180" stroke="#8577f0" stroke-width="2" fill="none"/>
-    <rect x="182" y="220" width="17" height="21" rx="3" fill="#e9e6ff"/>
-    <rect x="185" y="225" width="11" height="4" rx="1" fill="#5b4bdb"/>
-    <rect x="185" y="232" width="8" height="2" rx="1" fill="#9a93c9"/>
-
+    <!-- ===== ALCHYMISTA (projektový manažer) ===== -->
     <!-- kápě -->
-    <path d="M116 180 Q100 120 132 84 Q156 58 186 66 Q218 78 222 118 Q226 152 212 178 Q188 166 156 172 Q134 176 116 180 Z" fill="url(#hood)"/>
-    <path d="M132 84 Q156 58 186 66 Q218 78 222 118" fill="none" stroke="#9fb0ff" stroke-opacity=".45" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M118 176 Q106 128 130 92" fill="none" stroke="#9fb0ff" stroke-opacity=".25" stroke-width="2" stroke-linecap="round"/>
-    <!-- otvor kápě a obličej z profilu -->
-    <path d="M172 92 Q210 96 216 128 Q218 158 202 176 Q186 156 178 132 Q172 112 172 92 Z" fill="#100d1c"/>
-    <path d="M186 100 Q199 102 204 113 L213 126 Q210 129 206 130 Q208 136 204 139 Q206 145 200 150 Q192 155 186 150 Q180 128 186 100 Z" fill="url(#skin)"/>
-    <path d="M196 112 Q201 110 205 113" stroke="#2a1a14" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <path d="M197 117 Q200 115.5 203 117" stroke="#2a1a14" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <path d="M206 131 Q203 132.5 201 132" stroke="#5a3027" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    <path d="M213 126 L206 125" stroke="#7a4c3a" stroke-width="1" opacity=".6"/>
-    <path d="M204 113 L213 126 Q210 129 206 130 Q208 136 204 139 Q206 145 200 150" fill="none" stroke="#9ff0e3" stroke-opacity=".55" stroke-width="1.6"/>
-    <!-- rukáv a ruka nad kotlem -->
-    <path d="M200 182 Q246 170 288 184 L296 214 Q252 216 204 216 Z" fill="#2f2862"/>
-    <path d="M200 182 Q246 170 288 184 L296 214 Q252 216 204 216 Z" fill="url(#robeLit)"/>
-    <path d="M206 186 Q246 178 284 190" stroke="#c9a24a" stroke-width="2" fill="none" opacity=".7"/>
-    <ellipse cx="292" cy="199" rx="7" ry="15" fill="#120f1f"/>
-    <!-- dlaň a roztažené prsty (zespodu osvětlené lektvarem) -->
-    <g stroke-linecap="round" fill="none">
-      <path d="M311 193 L333 189" stroke="#c49580" stroke-width="5"/>
-      <path d="M313 197 L337 195" stroke="#c49580" stroke-width="5.2"/>
-      <path d="M312 201 L335 202" stroke="#b9a08e" stroke-width="5"/>
-      <path d="M309 205 L329 209" stroke="#a9b4a6" stroke-width="4.6"/>
-      <path d="M300 206 L312 214" stroke="#a9c4b8" stroke-width="5"/>
+    <path d="M198 160 C184 140 184 112 200 98 C214 86 236 90 242 106" stroke-width="3"/>
+    <path d="M242 106 C240 114 236 120 234 128 C232 140 232 150 236 160" stroke-width="2.4"/>
+    <path d="M204 154 C194 136 194 116 206 104" stroke-width="1" opacity=".55"/>
+    <path d="M222 92 C226 106 226 126 220 146" stroke-width="1" opacity=".5"/>
+    <!-- obličej z profilu -->
+    <path d="M236 110 C240 114 242 118 242 122 L252 132 C249 135 246 136 244 136 C246 138 246 141 243 142 C245 144 245 147 242 149 C242 152 239 155 234 156" stroke-width="1.9"/>
+    <path d="M233 120 Q237 117 241 120" stroke-width="1.5"/>
+    <path d="M236 123 L237 124.5" stroke-width="2"/>
+    <circle cx="238" cy="123" r="5.2" stroke-width="1.4"/>
+    <path d="M233 122 L224 120" stroke-width="1.2"/>
+    <path d="M242 139 L245 139" stroke-width="1.1"/>
+    <path d="M226 108 C230 112 230 118 233 122" stroke-width="0.9" opacity=".7"/>
+    <!-- pelerína kápě přes ramena -->
+    <path d="M198 160 C190 166 182 170 178 176" stroke-width="2.6"/>
+    <path d="M236 160 C242 166 248 170 252 178" stroke-width="2.4"/>
+    <path d="M182 178 C200 186 230 186 250 180" stroke-width="1.8"/>
+    <path d="M200 170 C210 176 224 176 236 172" stroke-width="1" opacity=".6"/>
+    <!-- plášť: obrysy -->
+    <path d="M178 176 C166 232 152 300 132 360" stroke-width="3"/>
+    <path d="M252 180 C258 236 264 300 278 358" stroke-width="3"/>
+    <!-- lem se záhyby a špička boty -->
+    <path d="M132 360 C146 352 158 366 174 360 C188 354 198 366 214 360 C228 354 240 366 256 359 C266 355 272 364 278 358" stroke-width="2.4"/>
+    <path d="M272 360 C280 356 292 358 294 364 L270 366" stroke-width="2"/>
+    <!-- záhyby pláště -->
+    <g stroke-width="1.4">
+      <path d="M196 190 C196 212 198 232 200 250"/>
+      <path d="M232 190 C236 212 238 232 238 250"/>
+      <path d="M176 262 C168 292 162 326 156 358"/>
+      <path d="M200 264 C198 294 196 326 196 358"/>
+      <path d="M224 264 C226 294 230 326 234 358"/>
+      <path d="M248 262 C254 292 260 326 266 358"/>
     </g>
-    <path d="M290 193 Q302 188 313 191 Q318 199 313 206 Q301 211 291 207 Z" fill="url(#hand)"/>
-    <g stroke="#e6fffa" stroke-opacity=".5" stroke-width="1" fill="none" stroke-linecap="round">
-      <path d="M318 204 L334 205"/><path d="M314 208 L328 211"/><path d="M304 210 L311 215"/>
+    <g stroke-width="0.85" opacity=".55">
+      <path d="M186 272 C182 300 178 330 176 356"/>
+      <path d="M212 272 C212 300 214 330 216 356"/>
+      <path d="M236 272 C240 300 246 330 250 356"/>
     </g>
+    <!-- šrafura ve stínu pláště -->
+    <g stroke-width="1" opacity=".6">
+      <path d="M174 214 L166 232"/><path d="M172 232 L160 258"/><path d="M168 272 L156 300"/><path d="M164 296 L150 326"/>
+      <path d="M158 320 L146 348"/><path d="M178 196 L170 214"/>
+    </g>
+    <!-- pás, uzel, váček -->
+    <path d="M172 250 C198 262 230 262 256 250" stroke-width="2.2"/>
+    <path d="M172 257 C198 269 230 269 256 257" stroke-width="1.4"/>
+    <path d="M220 262 C218 274 216 284 212 294 M224 264 C226 276 228 286 230 296" stroke-width="1.5"/>
+    <path d="M238 266 C234 272 234 286 240 292 C248 296 256 292 256 284 C256 276 252 268 246 266 Z" stroke-width="1.7"/>
+    <path d="M238 270 L254 270" stroke-width="1.1"/>
+    <!-- visačka projektového manažera -->
+    <path d="M226 168 L234 204 L242 172" stroke-width="1.3"/>
+    <rect x="227" y="203" width="14" height="18" rx="2" stroke-width="1.7"/>
+    <path d="M230 209 L238 209 M230 214 L235 214" stroke-width="1.1"/>
+    <!-- vzdálenější paže: rukáv k horní ruce -->
+    <path d="M244 180 C258 170 272 158 284 148" stroke-width="2.4"/>
+    <path d="M250 200 C264 186 278 172 290 162" stroke-width="2.4"/>
+    <path d="M282 144 C290 146 294 156 290 164" stroke-width="2"/>
+    <path d="M258 182 C262 188 268 188 272 184 M268 172 C272 176 276 176 280 172" stroke-width="1" opacity=".7"/>
+    <!-- horní ruka na násadě -->
+    <path d="M286 146 C286 136 300 132 307 140 C311 146 308 154 300 157 C292 160 285 155 286 146 Z" fill="#f5f0e6" stroke-width="1.9"/>
+    <path d="M300 157 C303 162 300 166 295 164" stroke-width="1.4"/>
+    <path d="M295 138 L300 146 M300 136 L305 144 M291 142 L296 150" stroke-width="1"/>
+    <!-- bližší paže: rukáv k dolní ruce -->
+    <path d="M246 196 C266 192 284 184 300 170" stroke-width="2.7"/>
+    <path d="M250 222 C270 216 290 204 306 188" stroke-width="2.7"/>
+    <path d="M298 166 C306 168 310 178 306 188" stroke-width="2.2"/>
+    <g stroke-width="1.1" opacity=".7">
+      <path d="M262 200 C266 208 272 210 280 206"/><path d="M280 192 C284 198 290 198 296 194"/><path d="M254 212 C258 216 262 216 266 214"/>
+    </g>
+    <!-- dolní ruka -->
+    <path d="M304 168 C304 158 318 154 326 162 C330 168 327 177 318 180 C310 183 303 177 304 168 Z" fill="#f5f0e6" stroke-width="1.9"/>
+    <path d="M318 180 C321 185 318 189 313 187" stroke-width="1.4"/>
+    <path d="M313 160 L318 168 M319 158 L324 166 M309 164 L314 172" stroke-width="1"/>
+  </g>
+
+  <!-- ===== „vygumované“ světlé tahy: znamení metodik v kouři a odlesky ===== -->
+  <g filter="url(#charcoal)" fill="none" stroke="#f5f0e6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Gantt -->
+    <path d="M360 152 H382 M372 162 H396 M388 172 H404" stroke-width="4.5"/>
+    <path d="M354 144 V178 H410" stroke-width="1.4"/>
+    <!-- sprint: smyčka se šipkou -->
+    <path d="M412 104 A18 18 0 1 1 430 122" stroke-width="3.4"/>
+    <path d="M437 114 L429 122 L437 130" stroke-width="3.4"/>
+    <!-- kanban -->
+    <g stroke-width="2.2">
+      <rect x="478" y="48" width="9" height="9"/><rect x="478" y="61" width="9" height="9"/>
+      <rect x="491" y="48" width="9" height="9"/><rect x="504" y="48" width="9" height="9"/><rect x="504" y="61" width="9" height="9"/>
+    </g>
+    <!-- odlesky na kotli a na plášti -->
+    <path d="M282 246 C284 280 298 312 322 334" stroke-width="5" opacity=".75"/>
+    <path d="M300 200 Q340 190 372 194" stroke-width="2.4" opacity=".7"/>
+    <path d="M244 214 C248 250 254 290 262 330" stroke-width="2.4" opacity=".55"/>
+  </g>
+
+  </g>
+  <!-- podpis rychlé kresby -->
+  <g filter="url(#charcoal)" fill="none" stroke="#1f1d1a" stroke-width="1.3" stroke-linecap="round" opacity=".7">
+    <path d="M530 384 C534 374 540 374 540 382 C540 390 546 390 548 380 M552 386 L560 374 M556 380 L564 388"/>
   </g>
 </svg>
