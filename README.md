@@ -3,6 +3,8 @@
 Výuková prohlížečová hra o **hybridním řízení projektů**. Hráč vede projekt, jehož část se řídí
 prediktivně (vodopád) a část agilně (Scrum), a učí se obě části propojit.
 
+▶ **[Hrát online](https://miroslavkrupa.github.io/hybridni-projekt/)**
+
 ## Scénáře
 
 | Scénář | Prediktivní část | Agilní část |
@@ -16,7 +18,10 @@ se pokaždé zamíchají. Nejlepší skóre každého scénáře se ukládá v p
 
 ## Jak hrát
 
-Spusť lokální server a otevři http://localhost:8765:
+Online na https://miroslavkrupa.github.io/hybridni-projekt/ (GitHub Pages, aktualizuje se
+po každém `git push` do větve `main`).
+
+Lokálně spusť server a otevři http://localhost:8765:
 
 ```bash
 python3 -m http.server 8765
