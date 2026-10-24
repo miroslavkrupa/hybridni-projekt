@@ -864,7 +864,7 @@ function intro() {
   }).join('');
   return `
     <div class="hero card">
-      <img class="hero-art" src="img/alchymie.svg" alt="Projektový manažer vaří v kotli projektovou metodiku" width="600" height="420">
+      <img class="hero-art" src="img/alchymie.svg" alt="Projektový manažer jako alchymista vaří v kotli projektovou metodiku" width="600" height="420">
       <h1>Projektová alchymie</h1>
       <p class="tagline">Namíchej správné řízení pro každý projekt</p>
       <p class="lead">Staneš se projektovým manažerem. Některé projekty se dají naplánovat dopředu, jiné se musí objevovat za pochodu a některé kombinují obojí.</p>

@@ -2,7 +2,7 @@
 
 *Namíchej správné řízení pro každý projekt.*
 
-![Projektový manažer vaří v kotli projektovou metodiku](img/alchymie.svg)
+![Projektový manažer jako alchymista vaří v kotli projektovou metodiku](img/alchymie.svg)
 
 Výuková prohlížečová hra o **řízení projektů**. Hráč vede projekt a musí nejdřív poznat, jaký přístup
 mu sedí – **prediktivní** (vodopád), **agilní**, nebo **hybridní** – a pak k němu namíchat správné
