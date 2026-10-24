@@ -12,7 +12,7 @@ mu sedí – **prediktivní** (vodopád), **agilní**, nebo **hybridní** – a 
 | 🏛️ Projekt Knihovna | hybridní | rekonstrukce budovy a kiosky + mobilní aplikace a katalog |
 | 🎸 Festival Soutok | hybridní | povolení, pódia, smlouvy s kapelami + aplikace, vstupenky, kampaň |
 | 🏭 Linka na elektrokola | hybridní | hala, stroje, CE certifikace + software pro řízení výroby |
-| ⚡ Odstávka elektrárny | prediktivní | pevný rozsah, **kritická cesta a rezerva projektu** |
+| ⚡ Odstávka elektrárny | prediktivní | **plánování po vlnách a Gantt** se závislostmi, kapacitou a rezervou |
 | 🚀 Startup Zachraň jídlo | agilní | nejistý trh, **objevování hodnoty a experimenty** |
 
 Typ projektu hráč předem nevidí – určí ho v první fázi a hra ho odhalí až po vyhodnocení.
@@ -41,9 +41,13 @@ python3 -m http.server 8765
 3. **Realizace** – 6 období (sprintů nebo etap): plánování práce do kapacity týmu, událost
    v každém období, milníky a kontrolní bod v polovině projektu. Podle typu projektu:
    - **hybridní** – backlog s MoSCoW, závislost agilní části na prediktivním milníku;
-   - **prediktivní** – pevné pracovní balíky s termíny; balík po termínu ukrojí den z rezervy
-     projektu, po jejím vyčerpání stojí každý den navíc harmonogram i peníze. Kritickou cestu
-     a termíny vidí jen hráč, který zvolil odpovídající praktiky;
+   - **prediktivní** – etapy různé délky plánované **po vlnách**: budoucí etapy jen nahrubo
+     (délka, odhad v člověkodnech, milník), nejbližší etapa podrobně v **Ganttu**. Hráč klikáním
+     rozvrhne úkoly, vyznačí závislosti a hlídá kapacitu týmu (lidé na den). Po startu se etapa
+     přehraje den po dni podle skutečných závislostí a velikosti týmu: zapomenutá závislost =
+     přerušení a den práce navíc, přetížený plán = úkoly čekají na volné lidi. Co se nevejde do
+     etapy, ukrojí z rezervy projektu. Nástroj „seřadit podle závislostí“ má jen hráč s praktikou
+     pro harmonogram, kritickou cestu a vůli jen hráč s analýzou kritické cesty;
    - **agilní** – hodnota položek je jen odhad, skutečnost se ukáže po dodání (nebo experimentem
      s praktikou Hypotézy a experimenty); dodané funkce odhalují nové podněty; úspěch se měří trakcí.
 4. **Vzorce a antivzorce** – během hry se odhalují vzorce (10) a antivzorce (14), které tvůj mix
@@ -71,16 +75,17 @@ python3 -m http.server 8765
   (neprozrazuje typ), 8 `workstreams`, `backlog`, 3 `milestones` a aspoň 3 vlastní `events`.
   - hybridní: `predWorld`, `agileWorld`, jedna položka s `needsMilestone: true`, milníky
     `dependency`, `schedule`, `launch`;
-  - prediktivní: `approachText`, `buffer` (rezerva ve dnech), položky s `planned` (termín etapy)
-    a `critical`, vlastní `gate`;
+  - prediktivní: `approachText`, `buffer` (rezerva ve dnech), `gateAfter`, vlastní `gate`
+    a `phases` – etapy s `days` (délka), `crew` (lidé na den), `milestone` a `tasks`
+    (`days`, `people`, skutečné `deps` a nápověda `note`; hráč závislosti odvozuje z popisu);
   - agilní: `approachText`, `targetValue`, položky s `value` (odhad) a `actual` (skutečnost),
     `reveals` + `discoveries` pro nové podněty, milníky `traction` s `target`, vlastní `gate`;
   - volitelně `baseCapacity` (kapacita týmu za období).
 
 Každá volba má `rating` (`best` / `ok` / `bad`), `effects` na ukazatele a volitelně
 `capacityMod` (změna kapacity příštího období), `dropScope` (vyřazení položek MoSCoW kategorie),
-`needs` (id praktiky, bez které je volba zamčená), `addItems` (nová práce) nebo `verify`
-(ověří hodnotu položek).
+`needs` (id praktiky, bez které je volba zamčená), `addItems` (nová práce), `verify`
+(ověří hodnotu položek) nebo `delay` (dny zpoždění etapy v prediktivním projektu).
 
 - **Novou praktiku** přidej do `PRACTICES`: `cost` (režie), `effects` (jednorázově), `useIn`
   (typy projektů, kde má smysl), `trapIn` (kde je pastí), volitelně `perSprint`, `capacity`,
