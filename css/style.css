@@ -342,6 +342,35 @@ h4 { margin: 14px 0 6px; font-size: 1rem; }
 .checklist { list-style: none; padding: 0; margin: 0; font-size: .92rem; }
 .checklist li { padding: 2px 0; }
 
+.practice.misfit { border-color: var(--warn); background: var(--warn-soft); }
+.ctx.approach.pred { background: var(--pred-soft); color: var(--pred); }
+.ctx.approach.agile { background: var(--agile-soft); color: var(--agile); }
+
+/* ---------- Typ projektu (odhalí se po první fázi) ---------- */
+.approach-reveal { margin: 14px 0; padding: 14px 16px; border-radius: 12px; border-left: 6px solid var(--both); background: var(--both-soft); }
+.approach-reveal.pred { border-left-color: var(--pred); background: var(--pred-soft); }
+.approach-reveal.agile { border-left-color: var(--agile); background: var(--agile-soft); }
+.approach-reveal h3 { margin-bottom: 6px; }
+.approach-reveal p:last-child { margin-bottom: 0; }
+
+/* ---------- Kritická cesta, rezerva, experimenty ---------- */
+.mos.crit { background: var(--pred-soft); color: var(--pred); }
+.due { display: block; font-size: .75rem; color: var(--muted); text-decoration: none; }
+.due.now { color: var(--bad); font-weight: 600; }
+.bl-row { display: flex; gap: 6px; align-items: stretch; margin-bottom: 6px; }
+.bl-row .bl-item { margin: 0; flex: 1; }
+.exp-btn {
+  font: inherit; font-size: .78rem; font-weight: 600; white-space: nowrap; cursor: pointer;
+  border: 2px dashed var(--agile); color: var(--agile); background: var(--agile-soft); border-radius: 10px; padding: 0 10px;
+}
+.exp-btn:disabled { opacity: .45; cursor: not-allowed; }
+.buffer { margin: 10px 0 4px; padding: 8px 10px; border-radius: 8px; background: var(--good-soft); font-size: .92rem; }
+.buffer.zero { background: var(--warn-soft); }
+.buffer.over { background: var(--bad-soft); color: var(--bad); }
+.schedule { border-left: 6px solid var(--warn); }
+.schedule.late { border-left-color: var(--bad); }
+.discovered { border-left: 6px solid var(--agile); }
+
 /* ---------- Volby závislé na praktikách ---------- */
 .choice.locked { opacity: .55; border-style: dashed; cursor: not-allowed; }
 .lock-note { display: block; font-size: .78rem; margin-top: 2px; }
@@ -384,6 +413,8 @@ h4 { margin: 14px 0 6px; font-size: 1rem; }
   .mix-bar .btn.big { padding: 10px 14px; font-size: 1rem; }
   .kfmd li { grid-template-columns: 1fr; gap: 0; }
   .top-btns .btn { padding: 8px 10px; font-size: .9rem; }
+  .bl-row { flex-direction: column; gap: 4px; }
+  .exp-btn { padding: 6px 10px; }
   .timeline { grid-template-columns: 1fr; }
   .track { gap: 3px; }
   .ms { font-size: .65rem; padding: 4px; }

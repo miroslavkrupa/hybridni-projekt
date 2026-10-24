@@ -29,6 +29,10 @@ const CONTEXT_TAGS = {
   nejistota_trhu: { icon: '🎲', label: 'Nejisté reakce uživatelů' },
   bezpecnost: { icon: '🦺', label: 'Bezpečnost a certifikace' },
   zmena_u_lidi: { icon: '🧑‍🤝‍🧑', label: 'Změna zavedených návyků lidí' },
+  pevne_okno: { icon: '🪟', label: 'Neposunutelné časové okno' },
+  jasne_zadani: { icon: '📘', label: 'Jasné a stabilní zadání' },
+  omezene_zdroje: { icon: '💸', label: 'Peníze jen na pár měsíců' },
+  rychla_zpetna_vazba: { icon: '⚡', label: 'Uživatelé dostupní pro rychlou zpětnou vazbu' },
 };
 
 // Bonus za každou praktiku, která sedí na kontext scénáře.
@@ -39,39 +43,48 @@ const CONTEXT_FIT_EFFECTS = { kvalita: 1, harmonogram: 1 };
 // effects: jednorázově při potvrzení mixu; perSprint: při každém sprint review
 // capacity: změna kapacity týmu každý sprint
 // softens: zmírnění negativních dopadů událostí ({ metrics } nebo { track }, factor = kolik zůstane)
-// trap: lákavá praktika, která v hybridním projektu škodí
+// useIn: typy projektů, kde má praktika smysl (jinde je zbytečnou režií); chybí = všude
+// trapIn: typy projektů, kde je praktika lákavá, ale škodí
 const PRACTICES = [
-  { id: 'plan', world: 'pred', icon: '📐', name: 'Harmonogram prediktivní části', cost: 1,
-    desc: 'Ganttův diagram s návaznostmi a milníky pro stavbu, nákupy a certifikace.',
-    mech: 'Milníky se splní už při 📅 ≥ 45 (bez plánu až při ≥ 55). +5 📅',
-    effects: { harmonogram: 5 }, planning: true, fits: ['pevny_termin'] },
-  { id: 'ccb', world: 'pred', icon: '🧾', name: 'Změnové řízení pro prediktivní část', cost: 1,
-    desc: 'Změny stavby a smluv posuzuje řídicí výbor podle dopadu na čas, náklady a rizika.',
+  { id: 'plan', world: 'pred', icon: '📐', name: 'Harmonogram s milníky', cost: 1, useIn: ['hybrid', 'pred'],
+    desc: 'Ganttův diagram s návaznostmi, termíny a milníky pro práce, které se dají naplánovat.',
+    mech: 'Milníky se splní už při 📅 ≥ 45 (bez plánu až při ≥ 55). Ukáže termíny prací. +5 📅',
+    effects: { harmonogram: 5 }, planning: true, fits: ['pevny_termin', 'jasne_zadani'] },
+  { id: 'ccb', world: 'pred', icon: '🧾', name: 'Formální změnové řízení', cost: 1, useIn: ['hybrid', 'pred'],
+    desc: 'Změny rozsahu, smluv a plánu posuzuje řídicí výbor podle dopadu na čas, náklady a rizika.',
     mech: 'Chrání před neřízenými vícepracemi. +4 💰 +3 📅',
     effects: { rozpocet: 4, harmonogram: 3 }, fits: ['regulace'] },
   { id: 'risk', world: 'pred', icon: '🧯', name: 'Registr rizik a riziková rezerva', cost: 1,
     desc: 'Rizika s plány reakce a vyčleněná rezerva peněz i času.',
     mech: 'Ztráty 💰 a 📅 z událostí jsou o 40 % menší. Odemyká volby „čerpat rezervu“. −5 💰 na rezervu.',
-    effects: { rozpocet: -5 }, softens: { metrics: ['rozpocet', 'harmonogram'], factor: 0.6 }, fits: ['pevny_termin', 'bezpecnost'] },
-  { id: 'detailgantt', world: 'pred', icon: '🗓️', name: 'Detailní Gantt pro celý projekt', cost: 2, trap: true,
+    effects: { rozpocet: -5 }, softens: { metrics: ['rozpocet', 'harmonogram'], factor: 0.6 }, bufferBonus: 1, fits: ['pevny_termin', 'bezpecnost', 'pevne_okno'] },
+  { id: 'detailgantt', world: 'pred', icon: '🗓️', name: 'Detailní Gantt pro celý projekt', cost: 2, useIn: ['pred'], trapIn: ['hybrid', 'agile'],
     desc: 'Každá funkce aplikace dostane v plánu pevný termín. Výbor má rád jistotu.',
     mech: 'Výbor je nadšený. +6 😊 +3 📅. Slouží i jako harmonogram.',
-    effects: { spokojenost: 6, harmonogram: 3 }, planning: true },
-  { id: 'ccball', world: 'pred', icon: '🏛️', name: 'Jedna změnová komise pro všechno', cost: 1, trap: true,
+    effects: { spokojenost: 6, harmonogram: 3 }, planning: true, fits: ['jasne_zadani'] },
+  { id: 'ccball', world: 'pred', icon: '🏛️', name: 'Jedna změnová komise pro všechno', cost: 1, useIn: ['pred'], trapIn: ['hybrid', 'agile'],
     desc: 'Každou změnu – i v backlogu – schvaluje měsíční komise. Jednotná pravidla pro všechny.',
     mech: 'Pevná kontrola nákladů. +5 💰, kapacita týmu −1 SP.',
     effects: { rozpocet: 5 }, capacity: -1 },
+  { id: 'cpm', world: 'pred', icon: '🛤️', name: 'Kritická cesta a rezerva projektu', cost: 1, useIn: ['hybrid', 'pred'],
+    desc: 'Analýza ukáže, které činnosti nesmí sklouznout, a drží společnou časovou rezervu na konci projektu.',
+    mech: 'Ukáže kritickou cestu v plánu a přidá 2 dny rezervy. +3 📅',
+    effects: { harmonogram: 3 }, planning: true, bufferBonus: 2, fits: ['pevne_okno'] },
+  { id: 'evm', world: 'pred', icon: '📈', name: 'Earned Value Management', cost: 2, useIn: ['pred'],
+    desc: 'Měří skutečně odvedenou práci vůči plánu a nákladům (SPI, CPI). Předpokládá pevný rozsah.',
+    mech: 'Vedení vidí přesný stav projektu. +5 😊 +3 💰',
+    effects: { spokojenost: 5, rozpocet: 3 }, fits: ['jasne_zadani'] },
 
-  { id: 'sync', world: 'hybrid', icon: '🔄', name: 'Týdenní synchronizace obou částí', cost: 1,
+  { id: 'sync', world: 'hybrid', icon: '🔄', name: 'Týdenní synchronizace obou částí', cost: 1, useIn: ['hybrid'],
     desc: 'Vedoucí prediktivní i agilní části se každý týden sejdou nad závislostmi a riziky.',
     mech: 'Negativní dopady událostí na rozhraní obou částí (🔗) jsou o 30 % menší. +3 ⭐',
     effects: { kvalita: 3 }, softens: { track: 'both', factor: 0.7 }, fits: ['zavislost'] },
-  { id: 'integrace', world: 'hybrid', icon: '🎯', name: 'Společné integrační milníky', cost: 1,
+  { id: 'integrace', world: 'hybrid', icon: '🎯', name: 'Společné integrační milníky', cost: 1, useIn: ['hybrid'],
     desc: 'V plánu jsou body, kdy se výstupy obou částí musí potkat a otestovat dohromady.',
     mech: '+4 📅. Spolu se synchronizací snižuje laťku pro splnění milníků o 10.',
     effects: { harmonogram: 4 }, fits: ['zavislost'] },
-  { id: 'dashboard', world: 'hybrid', icon: '📊', name: 'Hybridní dashboard pro výbor', cost: 1,
-    desc: 'Milníky a rozpočet prediktivní části + dodané přírůstky a burn-up agilní části.',
+  { id: 'dashboard', world: 'hybrid', icon: '📊', name: 'Transparentní dashboard pro výbor', cost: 1,
+    desc: 'Na jedné stránce milníky, rozpočet, rizika a skutečně dodaná práce (přírůstky, burn-up).',
     mech: '+6 😊. Výbor vidí skutečný stav projektu.',
     effects: { spokojenost: 6 }, fits: ['verejny'] },
   { id: 'gate', world: 'hybrid', icon: '🚦', name: 'Stage gate s živým demem', cost: 1,
@@ -82,23 +95,23 @@ const PRACTICES = [
     desc: 'Párová práce, krátká dokumentace a předávací schůzky napříč oběma částmi.',
     mech: '+3 ⭐. Chrání projekt, když vypadne klíčový člověk.',
     effects: { kvalita: 3 }, fits: ['zmena_u_lidi'] },
-  { id: 'prescasy', world: 'hybrid', icon: '🌙', name: 'Přesčasy jako rezerva kapacity', cost: 0, trap: true,
+  { id: 'prescasy', world: 'hybrid', icon: '🌙', name: 'Přesčasy jako rezerva kapacity', cost: 0, trapIn: ['hybrid', 'pred', 'agile'],
     desc: 'Když to bude hořet, tým zůstane déle. Nic to nestojí.',
     mech: 'Kapacita +2 SP každý sprint. Morálka −4 každý sprint.',
     effects: {}, capacity: 2, perSprint: { moralka: -4 } },
 
-  { id: 'scrum', world: 'agile', icon: '🏉', name: 'Scrum ve dvoutýdenních sprintech', cost: 2,
+  { id: 'scrum', world: 'agile', icon: '🏉', name: 'Scrum ve dvoutýdenních sprintech', cost: 2, useIn: ['hybrid', 'agile'],
     desc: 'Plánování, daily, review a retrospektiva; každé 2 týdny hotový přírůstek.',
     mech: 'Na review uživatelé vidí hodnotu: dodaná hodnota zvyšuje 😊 naplno. +3 ⭐',
-    effects: { kvalita: 3 }, feedbackLoop: true, fits: ['nejistota_trhu'] },
-  { id: 'kanban', world: 'agile', icon: '🗂️', name: 'Kanban s WIP limity', cost: 1,
+    effects: { kvalita: 3 }, feedbackLoop: true, fits: ['nejistota_trhu', 'rychla_zpetna_vazba'] },
+  { id: 'kanban', world: 'agile', icon: '🗂️', name: 'Kanban s WIP limity', cost: 1, useIn: ['hybrid', 'agile'],
     desc: 'Plynulý tok práce s omezeným počtem rozpracovaných úkolů.',
     mech: 'Přetížení sprintu bolí méně (💪 −3 místo −8). Dodaná hodnota zvyšuje 😊 naplno.',
-    effects: {}, feedbackLoop: true, overloadMorale: -3, fits: ['nejistota_trhu'] },
-  { id: 'po', world: 'agile', icon: '👑', name: 'Product Owner s mandátem a časem', cost: 1,
+    effects: {}, feedbackLoop: true, overloadMorale: -3, fits: ['nejistota_trhu', 'rychla_zpetna_vazba'] },
+  { id: 'po', world: 'agile', icon: '👑', name: 'Product Owner s mandátem a časem', cost: 1, useIn: ['hybrid', 'agile'],
     desc: 'Člověk z řad uživatelů rozhoduje o pořadí backlogu a je týmu k dispozici.',
     mech: '+6 😊 +3 ⭐. Bez PO spokojenost každý sprint klesá.',
-    effects: { spokojenost: 6, kvalita: 3 }, fits: ['zmena_u_lidi'] },
+    effects: { spokojenost: 6, kvalita: 3 }, fits: ['zmena_u_lidi', 'rychla_zpetna_vazba'] },
   { id: 'retro', world: 'agile', icon: '🔁', name: 'Retrospektivy', cost: 1,
     desc: 'Po každém sprintu tým vyhodnotí, co zlepšit ve způsobu práce.',
     mech: 'Morálka +2 každý sprint.',
@@ -107,11 +120,15 @@ const PRACTICES = [
     desc: 'Hotovo = otestováno, zdokumentováno a v souladu s pravidly (bezpečnost, GDPR).',
     mech: 'Kvalita +2 každý sprint.',
     effects: {}, perSprint: { kvalita: 2 }, fits: ['regulace', 'bezpecnost'] },
+  { id: 'lean', world: 'agile', icon: '🧪', name: 'Hypotézy a experimenty', cost: 1, useIn: ['hybrid', 'agile'],
+    desc: 'Build–Measure–Learn: než tým funkci postaví, levně si ověří, jestli o ni uživatelé stojí.',
+    mech: 'Při plánování můžeš levně ověřit skutečnou hodnotu až 2 nejistých položek za sprint. +2 ⭐',
+    effects: { kvalita: 2 }, experiments: true, fits: ['nejistota_trhu', 'omezene_zdroje'] },
 ];
 
 const WORLD_LABEL = {
   pred: '📐 Prediktivní praktiky',
-  hybrid: '🔗 Propojovací praktiky',
+  hybrid: '🔗 Propojovací a společné praktiky',
   agile: '🔄 Agilní praktiky',
 };
 
@@ -132,26 +149,57 @@ const PRACTICE_PAIRS = [
   { a: 'ccb', b: 'ccball', type: 'con', text: 'Dvě změnová řízení pro tutéž věc.' },
   { a: 'prescasy', b: 'retro', type: 'con', text: 'Retrospektivy opakovaně odhalí únavu, ale nic se nezmění.' },
   { a: 'prescasy', b: 'kanban', type: 'con', text: 'WIP limity a přesčasy jdou proti sobě.' },
+  { a: 'plan', b: 'cpm', type: 'syn', text: 'Plán, ve kterém je vidět, co nesmí sklouznout.' },
+  { a: 'cpm', b: 'risk', type: 'syn', text: 'Rizika se hlídají hlavně na kritické cestě.' },
+  { a: 'evm', b: 'dashboard', type: 'syn', text: 'Přesná čísla o stavu projektu na jednom místě.' },
+  { a: 'lean', b: 'po', type: 'syn', text: 'Product Owner rozhoduje podle ověřených dat.' },
+  { a: 'lean', b: 'scrum', type: 'syn', text: 'Každý sprint je zároveň experiment.' },
+  { a: 'scrum', b: 'evm', type: 'con', text: 'EVM předpokládá pevný rozsah, sprinty ho mění.' },
+  { a: 'lean', b: 'detailgantt', type: 'con', text: 'Experimenty vs. předem daný termín každé funkce.' },
 ];
 
-// Co by dobrý hybridní mix neměl vynechat (hodnotí se v „manažerském úsudku“).
-const ESSENTIALS = [
-  { name: 'Iterativní rámec agilní části', any: ['scrum', 'kanban'] },
-  { name: 'Product Owner', any: ['po'] },
-  { name: 'Plán prediktivní části', any: ['plan'] },
-  { name: 'Propojení obou částí', any: ['sync', 'integrace'] },
-  { name: 'Řízení rizik', any: ['risk'] },
-  { name: 'Transparentní reporting', any: ['dashboard', 'gate'] },
-];
+// Co by dobrý mix neměl vynechat – podle typu projektu (hodnotí se v „manažerském úsudku“).
+const ESSENTIALS = {
+  hybrid: [
+    { name: 'Iterativní rámec agilní části', any: ['scrum', 'kanban'] },
+    { name: 'Product Owner', any: ['po'] },
+    { name: 'Plán prediktivní části', any: ['plan', 'cpm'] },
+    { name: 'Propojení obou částí', any: ['sync', 'integrace'] },
+    { name: 'Řízení rizik', any: ['risk'] },
+    { name: 'Transparentní reporting', any: ['dashboard', 'gate'] },
+  ],
+  pred: [
+    { name: 'Detailní plán', any: ['plan', 'detailgantt'] },
+    { name: 'Kritická cesta a rezerva', any: ['cpm'] },
+    { name: 'Řízení změn', any: ['ccb', 'ccball'] },
+    { name: 'Řízení rizik', any: ['risk'] },
+    { name: 'Měření stavu vůči plánu', any: ['evm', 'dashboard'] },
+  ],
+  agile: [
+    { name: 'Iterativní rámec', any: ['scrum', 'kanban'] },
+    { name: 'Product Owner', any: ['po'] },
+    { name: 'Ověřování hypotéz', any: ['lean'] },
+    { name: 'Neustálé zlepšování', any: ['retro'] },
+    { name: 'Kvalita přírůstků', any: ['dod'] },
+  ],
+};
+
+// Jak se typ projektu hráči představí po první fázi.
+const APPROACHES = {
+  hybrid: { icon: '🔗', label: 'Hybridní projekt', period: 'Sprint' },
+  pred: { icon: '📐', label: 'Prediktivní projekt', period: 'Etapa' },
+  agile: { icon: '🔄', label: 'Agilní projekt', period: 'Sprint' },
+};
 
 // ---------- Vzorce a antivzorce: kontext → forma → mechanismus → důsledek ----------
-// when(c): c = { has(id), cost, overloads } – zda vzorec v této hře vznikl
+// approaches: typy projektů, ve kterých vzorec může vzniknout (chybí = všude)
+// when(c): c = { has(id), cost, budget, overloads } – zda vzorec v této hře vznikl
 // reveal: číslo = odhalí se při sprint review od daného sprintu,
 //         'm1' = u prvního milníku, 'gate' = na stage gate, 'soften' = když rezerva zmírní událost
 // perSprint: působí každý sprint od začátku (i před odhalením); once: jednorázově při odhalení
 const PATTERNS = [
   {
-    id: 'integracni_milnik', type: 'pattern', icon: '🎯', name: 'Integrační milník',
+    id: 'integracni_milnik', approaches: ['hybrid'], type: 'pattern', icon: '🎯', name: 'Integrační milník',
     when: c => c.has('sync') && c.has('integrace'), reveal: 'm1', once: { kvalita: 4 },
     story: 'Na integračním milníku se ukázalo, že výstupy obou částí do sebe zapadají. Dvě drobné nesrovnalosti se opravily hned.',
     k: 'Agilní část závisí na výstupu prediktivní části (dodávka zařízení, schválený layout, stroje).',
@@ -169,7 +217,7 @@ const PATTERNS = [
     d: 'Kvalita i morálka postupně rostou.',
   },
   {
-    id: 'dvourychlostni', type: 'pattern', icon: '⚖️', name: 'Dvourychlostní governance',
+    id: 'dvourychlostni', approaches: ['hybrid'], type: 'pattern', icon: '⚖️', name: 'Dvourychlostní governance',
     when: c => c.has('ccb') && c.has('po') && !c.has('ccball'), reveal: 3, once: { harmonogram: 4, spokojenost: 3 },
     story: 'Uživatelé chtěli upravit tři funkce – PO je zařadil do backlogu za den. Změna v prediktivní části mezitím prošla řádným posouzením.',
     k: 'V jednom projektu jsou drahé změny (stavba, smlouvy) i levné změny (software).',
@@ -214,7 +262,7 @@ const PATTERNS = [
     d: 'Výpadek člověka projekt neohrozí a výsledky půjde po projektu udržovat.',
   },
   {
-    id: 'water_scrum_fall', type: 'anti', icon: '🌊', name: 'Water-Scrum-Fall',
+    id: 'water_scrum_fall', approaches: ['hybrid'], type: 'anti', icon: '🌊', name: 'Water-Scrum-Fall',
     when: c => (c.has('scrum') || c.has('kanban')) && c.has('detailgantt'), reveal: 2, perSprint: { moralka: -3, kvalita: -2 },
     story: 'Tým se ptá: „Proč děláme review, když termíny všech funkcí jsou stejně předem dané?“',
     k: 'Organizace zvyklá na detailní plánování zavádí agilní tým.',
@@ -223,7 +271,7 @@ const PATTERNS = [
     d: 'Agilní rituály bez agilních přínosů, frustrace týmu, klesající kvalita.',
   },
   {
-    id: 'zamrzly_backlog', type: 'anti', icon: '🧊', name: 'Zamrzlý backlog',
+    id: 'zamrzly_backlog', approaches: ['hybrid', 'agile'], type: 'anti', icon: '🧊', name: 'Zamrzlý backlog',
     when: c => c.has('ccball'), reveal: 2, perSprint: { spokojenost: -2 },
     story: 'Uživatelé po review chtěli drobnou úpravu. Komise ji projedná až za měsíc.',
     k: 'Snaha o jednotná pravidla a pevnou kontrolu nákladů.',
@@ -250,7 +298,7 @@ const PATTERNS = [
     d: 'Chyby a skluz každý sprint.',
   },
   {
-    id: 'bez_vlastnika', type: 'anti', icon: '🎲', name: 'Backlog bez vlastníka',
+    id: 'bez_vlastnika', approaches: ['hybrid', 'agile'], type: 'anti', icon: '🎲', name: 'Backlog bez vlastníka',
     when: c => !c.has('po'), reveal: 2, perSprint: { spokojenost: -2 },
     story: 'Tým dodal funkci, o kterou nikdo z uživatelů nestál. Na tu důležitou se nedostalo.',
     k: 'Agilní tým bez jasného zástupce uživatelů.',
@@ -259,7 +307,7 @@ const PATTERNS = [
     d: 'Dodávají se méně podstatné věci, spokojenost klesá.',
   },
   {
-    id: 'bez_zpetne_vazby', type: 'anti', icon: '🙈', name: 'Vývoj naslepo',
+    id: 'bez_zpetne_vazby', approaches: ['hybrid', 'agile'], type: 'anti', icon: '🙈', name: 'Vývoj naslepo',
     when: c => !c.has('scrum') && !c.has('kanban'), reveal: 2, perSprint: { kvalita: -2 },
     story: 'Uživatelé zatím nic neviděli – a nikdo neví, jestli tým staví to správné.',
     k: 'Nejisté požadavky uživatelů.',
@@ -268,7 +316,7 @@ const PATTERNS = [
     d: 'Dodaná hodnota zvedá spokojenost jen napůl a kvalita klesá.',
   },
   {
-    id: 'slepy_plan', type: 'anti', icon: '🧭', name: 'Prediktivní část bez plánu',
+    id: 'slepy_plan', approaches: ['hybrid', 'pred'], type: 'anti', icon: '🧭', name: 'Prediktivní část bez plánu',
     when: c => !c.has('plan') && !c.has('detailgantt'), reveal: 'm1',
     story: 'U prvního milníku se zjistilo, že objednávky šly ven pozdě – nikdo nehlídal lhůty.',
     k: 'Prediktivní práce s dlouhými dodacími lhůtami a pevnými návaznostmi.',
@@ -278,7 +326,7 @@ const PATTERNS = [
   },
   {
     id: 'melounovy_reporting', type: 'anti', icon: '🍉', name: 'Melounový reporting',
-    when: c => !c.has('dashboard'), reveal: 'gate', once: { spokojenost: -8 },
+    when: c => !c.has('dashboard') && !c.has('evm'), reveal: 'gate', once: { spokojenost: -8 },
     story: 'Reporty byly měsíce zelené. Na stage gate výbor poprvé uviděl skutečný stav.',
     k: 'Výbor chce vidět „zelená čísla“ a projekt nemá transparentní reporting.',
     f: 'Reporting procent dokončení podle plánu bez ukázek hotové práce.',
@@ -303,6 +351,70 @@ const PATTERNS = [
     m: 'Když klíčový člověk vypadne, práce stojí a nikdo neví, jak věci fungují.',
     d: 'Propad kvality v závěru projektu – a riziko, že výsledky nepůjde dlouhodobě udržet.',
   },
+  {
+    id: 'agilni_divadlo', approaches: ['pred'], type: 'anti', icon: '🎭', name: 'Agilní divadlo',
+    when: c => c.has('scrum') || c.has('kanban') || c.has('po') || c.has('lean'), reveal: 2, perSprint: { moralka: -2 },
+    story: 'Na „sprint review“ montéři ukazují napůl rozebranou turbínu. Nikdo neví, co by na ní měli uživatelé připomínkovat.',
+    k: 'Projekt s jasným zadáním, předepsanými postupy a drahou změnou.',
+    f: 'Sprinty, backlog, Product Owner nebo experimenty pro práce, které mají daný postup.',
+    m: 'Ceremonie počítají se změnou, která tu nepřichází; iterovat se nemá co.',
+    d: 'Režie bez užitku a frustrace týmu.',
+  },
+  {
+    id: 'bduf', approaches: ['agile'], type: 'anti', icon: '📏', name: 'Velký plán na nejisté zadání',
+    when: c => c.has('plan') || c.has('detailgantt') || c.has('evm') || c.has('cpm') || c.has('ccball'), reveal: 2, perSprint: { spokojenost: -2 },
+    story: 'Tým staví funkce podle plánu z prvního týdne, i když data už ukazují, že uživatelé chtějí něco jiného.',
+    k: 'Nejistý trh – nikdo neví, co uživatelé opravdu chtějí.',
+    f: 'Detailní plán, kritická cesta nebo pevný rozsah předem (Big Design Up Front).',
+    m: 'Plán stojí na neověřených předpokladech; tým se drží plánu místo dat.',
+    d: 'Staví se věci, o které nikdo nestojí, a spokojenost klesá.',
+  },
+  {
+    id: 'hybrid_za_kazdou_cenu', approaches: ['pred', 'agile'], type: 'anti', icon: '🧩', name: 'Hybrid za každou cenu',
+    when: c => c.has('sync') || c.has('integrace'), reveal: 1, once: { moralka: -3 },
+    story: 'Týdenní „synchronizace obou částí“ – jenže druhá část neexistuje. Porada trvá pět minut a všichni se ptají, proč tu jsou.',
+    k: 'Projekt, který má jen jeden charakter (celý prediktivní nebo celý agilní).',
+    f: 'Propojovací praktiky hybridního řízení, i když není co propojovat.',
+    m: 'Koordinace rozhraní, které neexistuje, jen spotřebovává čas.',
+    d: 'Zbytečná režie. Hybrid není automaticky lepší – je to nástroj pro projekty se dvěma tvářemi.',
+  },
+  {
+    id: 'vodopad_kde_sedi', approaches: ['pred'], type: 'pattern', icon: '🏗️', name: 'Vodopád tam, kde sedí',
+    when: c => (c.has('plan') || c.has('detailgantt')) && c.has('cpm') && (c.has('ccb') || c.has('ccball')) && !c.has('scrum') && !c.has('kanban'),
+    reveal: 'm1', once: { harmonogram: 4 },
+    story: 'Blok se odstavil přesně podle plánu. Každá parta ví, kdy nastupuje, a nikdo na nikoho nečeká.',
+    k: 'Jasné a stabilní zadání, předepsané postupy, pevné okno a drahá změna.',
+    f: 'Detailní plán s kritickou cestou a formálním řízením změn.',
+    m: 'Každý ví, co a kdy dělat; drahé změny se posuzují dřív, než se udělají.',
+    d: 'Projekt se vejde do okna a nepřekvapí ho to, co se dalo předvídat.',
+  },
+  {
+    id: 'kriticka_cesta', approaches: ['pred'], type: 'pattern', icon: '🛤️', name: 'Řízená kritická cesta',
+    when: c => c.has('cpm'), reveal: 3, once: { harmonogram: 3 },
+    story: 'Když se jedna práce zdržela, tým hned věděl, jestli to posouvá konec projektu, nebo jestli má vůli.',
+    k: 'Projekt s mnoha návaznostmi a pevným koncovým termínem.',
+    f: 'Analýza kritické cesty a společná rezerva projektu (místo rezerv schovaných v každé činnosti).',
+    m: 'Pozornost a lidé jdou tam, kde zpoždění posouvá konec projektu; rezerva se čerpá vědomě.',
+    d: 'Zpoždění jednotlivých prací nemusí ohrozit termín.',
+  },
+  {
+    id: 'build_measure_learn', approaches: ['agile'], type: 'pattern', icon: '🔬', name: 'Build–Measure–Learn',
+    when: c => c.has('lean'), reveal: 2, once: { kvalita: 3 },
+    story: 'Landing page a pět rozhovorů za jedno odpoledne ušetřily týden vývoje funkce, o kterou nikdo nestál.',
+    k: 'Vysoká nejistota a omezené peníze.',
+    f: 'Hypotézy a levné experimenty před stavbou funkcí.',
+    m: 'Tým se učí dřív, než utratí čas a peníze; backlog se řídí ověřenou hodnotou.',
+    d: 'Víc skutečné hodnoty za stejnou práci.',
+  },
+  {
+    id: 'tovarna_na_funkce', approaches: ['agile'], type: 'anti', icon: '🏭', name: 'Továrna na funkce',
+    when: c => !c.has('lean'), reveal: 3, once: { spokojenost: -5 },
+    story: 'Tým dodal pět funkcí za tři sprinty. Uživatelé používají dvě.',
+    k: 'Startup pod tlakem ukázat pokrok.',
+    f: 'Úspěch se měří počtem dodaných funkcí, hypotézy se neověřují.',
+    m: 'Staví se podle odhadů a přání, ne podle ověřeného zájmu uživatelů.',
+    d: 'Velká část práce nepřinese hodnotu a peníze docházejí.',
+  },
 ];
 
 // ---------- Stage gate v polovině projektu (společný) ----------
@@ -320,10 +432,10 @@ const GATE_EVENT = {
   ],
 };
 
-// ---------- Obecné události (mohou nastat v jakémkoli scénáři) ----------
+// ---------- Obecné události (approaches = typy projektů, kde mohou nastat) ----------
 const GENERIC_EVENTS = [
   {
-    id: 'pretizeni', icon: '🤒', track: 'agile', title: 'Tým je přetížený',
+    id: 'pretizeni', approaches: ['hybrid', 'agile'], icon: '🤒', track: 'agile', title: 'Tým je přetížený',
     text: 'Dva členové agilního týmu jsou nemocní a zbytek jede na doraz. Product Owner přesto tlačí na víc funkcí.',
     lesson: 'Udržitelné tempo je základ agility. A pozor na Brooksův zákon: přidání lidí do zpožděného projektu ho krátkodobě ještě zpomalí.',
     choices: [
@@ -336,7 +448,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'datum', icon: '📆', track: 'agile', title: '„Kdy bude VŠECHNO hotové?“',
+    id: 'datum', approaches: ['hybrid'], icon: '📆', track: 'agile', title: '„Kdy bude VŠECHNO hotové?“',
     text: 'Člen řídicího výboru chce přesné datum, kdy budou hotové úplně všechny funkce z backlogu.',
     lesson: 'Hybridní projekty často fixují čas a rozpočet a flexibilní nechávají rozsah agilní části. Prognóza z burn-up grafu je poctivější než slib.',
     choices: [
@@ -349,7 +461,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'po', icon: '📭', track: 'agile', title: 'Product Owner nemá čas',
+    id: 'po', approaches: ['hybrid', 'agile'], icon: '📭', track: 'agile', title: 'Product Owner nemá čas',
     text: 'Product Owner je zahlcený běžnou prací. Na otázky týmu odpovídá za několik dní e-mailem.',
     lesson: 'Dostupnost Product Ownera je kritická. Bez rychlých rozhodnutí tým buď čeká, nebo staví špatné věci.',
     choices: [
@@ -362,7 +474,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'gantt', icon: '🗂️', track: 'both', title: 'Gantt i pro agilní část?',
+    id: 'gantt', approaches: ['hybrid'], icon: '🗂️', track: 'both', title: 'Gantt i pro agilní část?',
     text: 'Nový člen řídicího výboru je zvyklý na Ganttovy diagramy. Chce jeden i pro agilní část, s termínem každé funkce.',
     lesson: 'Hybridní PM „překládá“ mezi světy: agilní pokrok lze ukázat v řeči milníků (vydání, přírůstky) bez mikroplánování každé funkce.',
     choices: [
@@ -375,7 +487,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'drobnost', icon: '🍰', track: 'agile', title: '„Jen jedna drobnost…“',
+    id: 'drobnost', approaches: ['hybrid', 'agile'], icon: '🍰', track: 'agile', title: '„Jen jedna drobnost…“',
     text: 'Sponzor projektu ({sponsor}) chodí každý týden přímo za členy týmu s „drobnými“ požadavky. Tým je plní bokem a cíle sprintů se rozpadají.',
     lesson: 'Všechny požadavky na agilní část jdou přes Product Ownera a backlog. Práce „bokem“ ničí transparentnost i plánování.',
     choices: [
@@ -388,7 +500,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'dluh', icon: '🧱', track: 'agile', title: 'Technický dluh roste',
+    id: 'dluh', approaches: ['hybrid', 'agile'], icon: '🧱', track: 'agile', title: 'Technický dluh roste',
     text: 'Tým upozorňuje, že kvůli spěchu dělal zkratky. Řešení je křehké a každá nová funkce trvá déle.',
     lesson: 'Technický dluh je potřeba splácet průběžně. Je to investice do udržitelného tempa, ne „ztracený čas“.',
     choices: [
@@ -401,7 +513,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'smlouva', icon: '📜', track: 'both', title: 'Smlouva s externím dodavatelem',
+    id: 'smlouva', approaches: ['hybrid'], icon: '📜', track: 'both', title: 'Smlouva s externím dodavatelem',
     text: 'Část vývoje dělá externí firma. Nákupní oddělení chce smlouvu s pevnou cenou a detailně popsaným rozsahem na celý projekt.',
     lesson: 'Agilní práci s externisty kryjí agilní kontrakty: pevný čas a rozpočet, proměnlivý rozsah (případně platba za sprint s možností ukončení).',
     choices: [
@@ -414,7 +526,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'hodiny', icon: '⏳', track: 'agile', title: 'Odhady v hodinách',
+    id: 'hodiny', approaches: ['hybrid', 'agile'], icon: '⏳', track: 'agile', title: 'Odhady v hodinách',
     text: 'Finanční ředitel chce u každé položky backlogu odhad v hodinách a bude kontrolovat, kdo kolik „přetáhl“.',
     lesson: 'Story pointy a velocity dávají spolehlivější prognózu než detailní hodinové odhady. Měř tým, ne jednotlivce.',
     choices: [
@@ -427,7 +539,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'spor', icon: '⚔️', track: 'both', title: 'Spor o sdílené prostředí',
+    id: 'spor', approaches: ['hybrid'], icon: '⚔️', track: 'both', title: 'Spor o sdílené prostředí',
     text: 'Vedoucí prediktivní části a Scrum Master se přou: oba potřebují ve stejném týdnu jediné testovací prostředí a stejné techniky.',
     lesson: 'Hybridní PM řeší konflikty o sdílené zdroje transparentně – podle závislostí a dopadu na cíle, ne podle toho, kdo je hlasitější.',
     choices: [
@@ -440,7 +552,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'nefunguje', icon: '🐛', track: 'agile', title: 'Hotovo, ale nefunguje',
+    id: 'nefunguje', approaches: ['hybrid', 'agile'], icon: '🐛', track: 'agile', title: 'Hotovo, ale nefunguje',
     text: 'Na sprint review se ukáže, že funkce označená jako „hotová“ v reálném prostředí nefunguje. Na počítači vývojáře šlapala.',
     lesson: 'Jasná Definition of Done a „blameless“ přístup k chybám: hledáme příčinu v procesu, ne viníka.',
     choices: [
@@ -453,7 +565,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'daily', icon: '👀', track: 'agile', title: 'Sponzor na daily scrumu',
+    id: 'daily', approaches: ['hybrid', 'agile'], icon: '👀', track: 'agile', title: 'Sponzor na daily scrumu',
     text: 'Sponzor ({sponsor}) začal chodit na každý daily scrum, vyptává se jednotlivců a rozděluje jim úkoly.',
     lesson: 'Daily scrum je plánovací schůzka týmu, ne report nadřízenému. Stakeholdeři mají své místo na sprint review.',
     choices: [
@@ -466,7 +578,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'velocity', icon: '📈', track: 'agile', title: 'Soutěž ve velocity',
+    id: 'velocity', approaches: ['hybrid', 'agile'], icon: '📈', track: 'agile', title: 'Soutěž ve velocity',
     text: 'Vedení navrhuje: tým s nejvyšší velocity dostane bonus. Velocity se bude porovnávat i s ostatními týmy.',
     lesson: 'Velocity je plánovací nástroj týmu, ne výkonnostní metrika. Jakmile se z ní stane cíl, přestane fungovat (Goodhartův zákon).',
     choices: [
@@ -479,7 +591,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'rizika', icon: '📋', track: 'both', title: 'Zaprášený registr rizik',
+    id: 'rizika', approaches: ['hybrid'], icon: '📋', track: 'both', title: 'Zaprášený registr rizik',
     text: 'Zjistíš, že registr rizik od úvodní fáze nikdo neotevřel. Agilní část v něm vůbec není.',
     lesson: 'Řízení rizik je průběžná činnost. V hybridu sleduj rizika obou částí i jejich rozhraní – nejlépe v rámci pravidelné synchronizace.',
     choices: [
@@ -492,7 +604,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'pilot', icon: '🧪', track: 'agile', title: 'Pilotní provoz?',
+    id: 'pilot', approaches: ['hybrid', 'agile'], icon: '🧪', track: 'agile', title: 'Pilotní provoz?',
     text: 'Product Owner navrhuje pustit část hotových funkcí malé skupině uživatelů ještě před ostrým startem.',
     lesson: 'Dodávat hodnotu brzy a v malých krocích snižuje riziko. Pilotní provoz je typický most mezi agilním vývojem a pevným datem spuštění.',
     choices: [
@@ -505,7 +617,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'komise', icon: '🏛️', track: 'both', title: 'Jedna změnová komise pro všechno',
+    id: 'komise', approaches: ['hybrid'], icon: '🏛️', track: 'both', title: 'Jedna změnová komise pro všechno',
     text: 'Manažer kvality navrhuje sjednotit pravidla: každá změna, i v backlogu agilní části, musí projít změnovou komisí, která zasedá jednou měsíčně.',
     lesson: 'Hybridní governance má více rychlostí: formální změnové řízení tam, kde jsou změny drahé, a rychlá rozhodnutí PO tam, kde jsou levné.',
     choices: [
@@ -518,7 +630,7 @@ const GENERIC_EVENTS = [
     ],
   },
   {
-    id: 'specialista', icon: '🧑‍🔧', track: 'both', title: 'Jeden specialista pro dva světy',
+    id: 'specialista', approaches: ['hybrid'], icon: '🧑‍🔧', track: 'both', title: 'Jeden specialista pro dva světy',
     text: 'Jediný bezpečnostní specialista má pracovat současně pro prediktivní i agilní část a nestíhá.',
     lesson: 'Sdílené zdroje jsou typické úzké hrdlo hybridních projektů. Plánuj je centrálně podle kritických milníků a předávej znalosti dál.',
     choices: [
@@ -530,11 +642,40 @@ const GENERIC_EVENTS = [
         feedback: 'Pomůže to, ale je to drahé a nový člověk se teprve zaučuje.' },
     ],
   },
+  {
+    id: 'agile_hype', approaches: ['pred'], icon: '🌀', track: 'pred', title: 'Agilní horečka',
+    text: 'Nový ředitel inovací přesvědčil vedení, že „dnes se všechno dělá agilně“. Chce, aby i tento projekt běžel ve sprintech s backlogem a Product Ownerem.',
+    lesson: 'Agilní přístup není univerzálně lepší. Kde je zadání jasné a změna drahá, vyhrává plán. Z agility se dají převzít jednotlivé praktiky, pokud něco přinesou.',
+    choices: [
+      { text: 'Vysvětlit, proč tu sedí plán s kritickou cestou; převzít jen užitečné prvky (krátké denní porady, retrospektivy)', rating: 'best', effects: { spokojenost: 2, moralka: 3 },
+        feedback: 'Ředitel inovací pochopil, že agilita je nástroj, ne cíl. Denní porady u tabule se týmu líbí.' },
+      { text: 'Přejít na sprinty a backlog', rating: 'bad', effects: { harmonogram: -10, moralka: -6 },
+        feedback: 'Pevný postup montáže se teď „prioritizuje“ každé dva týdny. Návaznosti se rozpadají.' },
+      { text: 'Vyhovět jen na papíře – přejmenovat etapy na sprinty', rating: 'ok', effects: { moralka: -3 },
+        feedback: 'Nic se nezměnilo kromě názvů. Tým se tomu směje, vedení je spokojené – zatím.' },
+    ],
+  },
+  {
+    id: 'plan_na_rok', approaches: ['agile'], icon: '🗓️', track: 'agile', title: 'Plán funkcí na rok dopředu',
+    text: 'Potenciální investor chce detailní plán všech funkcí aplikace na rok dopředu, s termíny.',
+    lesson: 'V nejistém prostředí se plánují cíle a hypotézy, ne funkce. Plán funkcí na rok je odhad postavený na neověřených předpokladech.',
+    choices: [
+      { text: 'Ukázat roadmapu cílů a hypotéz, metriky trakce a jak rozhodujeme podle dat', rating: 'best', effects: { spokojenost: 5 },
+        feedback: 'Investor ocenil, že tým ví, co měří a proč. Plán funkcí nepotřebuje.' },
+      { text: 'Sepsat detailní plán funkcí na celý rok', rating: 'bad', effects: { moralka: -6, kvalita: -3 },
+        feedback: 'Psaní zabralo týden a plán byl zastaralý po prvním testu s uživateli.' },
+      { text: 'Dát mu jen datum spuštění', rating: 'ok', effects: { spokojenost: -3 },
+        feedback: 'Investor je nejistý – neví, podle čeho tým rozhoduje.' },
+    ],
+  },
 ];
 
 // ---------- Scénáře ----------
-// milestones: kind 'dependency' odemyká závislou položku backlogu,
-// 'schedule' hlídá harmonogram, 'launch' kontroluje hotové Must položky.
+// approach: 'hybrid' | 'pred' | 'agile' – hráč ho předem nevidí, určuje ho v první fázi
+// milestones: kind 'dependency' odemyká závislou položku backlogu, 'schedule' hlídá harmonogram,
+// 'launch' kontroluje hotové Must položky, 'traction' kontroluje dodanou hodnotu (target)
+// Prediktivní scénář: položky mají planned (termín etapy) a critical (kritická cesta), buffer = rezerva ve dnech.
+// Agilní scénář: položky mají value (odhad) a actual (skutečnost); reveals přidá položky z discoveries.
 const SCENARIOS = [
   {
     id: 'knihovna',
@@ -542,6 +683,8 @@ const SCENARIOS = [
     icon: '🏛️',
     tagline: 'Rekonstrukce budovy + mobilní aplikace',
     context: ['zavislost', 'regulace', 'verejny'],
+    approach: 'hybrid',
+    scope: 'Rekonstrukce budovy, nové samoobslužné kiosky, kabeláž, mobilní aplikace a online katalog pro čtenáře.',
     intro: 'Právě jsi převzal(a) řízení projektu modernizace městské knihovny. Za 12 týdnů se má slavnostně otevírat.',
     predWorld: 'Rekonstrukce budovy, nákup kiosků, kabeláž. Pevné smlouvy, termíny a povolení. Vládne Ganttův diagram.',
     agileWorld: 'Mobilní aplikace a online katalog. Požadavky se vyvíjejí, tým pracuje ve sprintech a sbírá zpětnou vazbu.',
@@ -722,6 +865,8 @@ const SCENARIOS = [
     icon: '🎸',
     tagline: 'Pódia a povolení + aplikace a kampaň',
     context: ['zavislost', 'pevny_termin', 'nejistota_trhu'],
+    approach: 'hybrid',
+    scope: 'Povolení a stavba areálu, smlouvy s kapelami, bezpečnost, festivalová aplikace, vstupenky a kampaň.',
     intro: 'Pořádáš první ročník hudebního festivalu Soutok. Za 12 týdnů se otevírají brány pro 15 000 návštěvníků.',
     predWorld: 'Povolení od úřadů, stavba pódií, smlouvy s kapelami, bezpečnostní plán. Pevné termíny a úřední schválení.',
     agileWorld: 'Festivalová aplikace, vstupenky, web a kampaň na sociálních sítích. Testuje se, měří a přizpůsobuje.',
@@ -889,6 +1034,8 @@ const SCENARIOS = [
     icon: '🏭',
     tagline: 'Instalace strojů + software pro výrobu',
     context: ['zavislost', 'bezpecnost', 'zmena_u_lidi'],
+    approach: 'hybrid',
+    scope: 'Stavební úpravy haly, nákup a instalace strojů, certifikace a software pro řízení výroby a údržby.',
     intro: 'Firma vyrábějící elektrokola staví novou výrobní linku. Za 12 týdnů z ní má sjet první kolo.',
     predWorld: 'Stavební úpravy haly, nákup a instalace strojů, CE certifikace. Dlouhé dodací lhůty a normy.',
     agileWorld: 'Software pro řízení výroby, aplikace pro údržbu a digitální návody. Ladí se s operátory přímo na lince.',
@@ -1036,6 +1183,375 @@ const SCENARIOS = [
       },
     ],
   },
+
+  {
+    id: 'elektrarna',
+    name: 'Odstávka elektrárny',
+    icon: '⚡',
+    tagline: 'Generální oprava bloku v pevném okně',
+    context: ['pevne_okno', 'bezpecnost', 'jasne_zadani'],
+    approach: 'pred',
+    scope: 'Příprava a objednávky, odstavení bloku, revize turbíny, výměna potrubí, aktualizace řídicího systému, tlakové zkoušky a opětovné najetí. Postupy předepisují normy a výrobci zařízení.',
+    approachText: 'Jasné a stabilní zadání, předepsané postupy, pevné okno a vysoká cena každé změny. Celý projekt se nejlépe řídí prediktivně: detailní plán, kritická cesta, řízení změn a rizik. Agilní praktiky by tu byly hlavně režií.',
+    intro: 'Řídíš plánovanou generální opravu bloku elektrárny. Za 12 týdnů musí blok znovu dodávat elektřinu do sítě – každý den navíc stojí miliony.',
+    baseCapacity: 10,
+    buffer: 2,
+    terms: {
+      launch: 'najetí bloku',
+      predShort: 'celý projekt',
+      agileShort: '–',
+      users: 'provozní technici',
+      usersGen: 'provozních techniků',
+      sponsor: 'ředitel elektrárny',
+      poGood: 'vedoucí provozu',
+      committee: 'vedení elektrárny',
+    },
+    dependency: {
+      lock: 'Čeká na odstavení bloku (milník)',
+      hint: '<b>Práce přímo na bloku</b> mohou začít až po milníku „Odstavení bloku“.',
+    },
+    workstreams: [
+      { id: 'plan', icon: '📋', name: 'Harmonogram odstávky a koordinace dodavatelů', answer: 'pred',
+        why: 'Desítky dodavatelů se musí vystřídat v přesném pořadí. Bez plánu předem by si překáželi a okno by nestačilo.' },
+      { id: 'turbina', icon: '⚙️', name: 'Revize turbíny podle předpisu výrobce', answer: 'pred',
+        why: 'Postup revize předepisuje výrobce krok za krokem. Nic se tu „neobjevuje“ – dodržuje se plán.' },
+      { id: 'potrubi', icon: '🔩', name: 'Výměna opotřebeného potrubí', answer: 'pred',
+        why: 'Rozsah je známý z měření, díly se objednávají měsíce dopředu. Klasická plánovaná práce.' },
+      { id: 'ridici', icon: '💻', name: 'Aktualizace softwaru řídicího systému', answer: 'pred',
+        why: 'Pozor, i když je to software: jde o certifikovanou verzi od výrobce, která se nasazuje a testuje podle schváleného postupu. Neiteruje se, plánuje se.' },
+      { id: 'bozp', icon: '🦺', name: 'Bezpečnost práce a povolení na práce', answer: 'pred',
+        why: 'Pravidla jsou daná předpisy a každé povolení se vydává formálně předem.' },
+      { id: 'logistika', icon: '🚚', name: 'Logistika dílů, nářadí a lešení', answer: 'pred',
+        why: 'Co, kdy a kam musí dorazit, vyplývá přímo z harmonogramu prací.' },
+      { id: 'skoleni', icon: '🎓', name: 'Zaškolení obsluhy na nové prvky', answer: 'pred',
+        why: 'Obsah je daný změnami zařízení a termín je pevný – obsluha musí být připravená před najetím.' },
+      { id: 'zkousky', icon: '🧪', name: 'Tlakové zkoušky a najetí bloku', answer: 'pred',
+        why: 'Zkoušky mají normou daný postup a kritéria. Žádný prostor pro experimenty.' },
+    ],
+    backlog: [
+      { id: 'harmonogram', name: 'Podrobný harmonogram a povolení', sp: 3, value: 6, moscow: 'M', planned: 1, critical: true },
+      { id: 'objednavky', name: 'Objednávky dílů s dlouhou dodací lhůtou', sp: 3, value: 8, moscow: 'M', planned: 1, critical: true },
+      { id: 'dodavatele', name: 'Smlouvy s dodavateli prací', sp: 3, value: 6, moscow: 'M', planned: 2 },
+      { id: 'lese', name: 'Stavba lešení a příprava pracovišť', sp: 3, value: 5, moscow: 'M', planned: 2 },
+      { id: 'skoleni', name: 'Bezpečnostní školení dodavatelů', sp: 2, value: 5, moscow: 'M', planned: 2 },
+      { id: 'nahradni', name: 'Příprava náhradních dílů a nářadí', sp: 3, value: 5, moscow: 'M', planned: 2, requires: ['objednavky'] },
+      { id: 'odstaveni', name: 'Odstavení a vychlazení bloku', sp: 3, value: 9, moscow: 'M', planned: 3, critical: true, needsMilestone: true },
+      { id: 'demontaz', name: 'Demontáž izolací a krytů', sp: 3, value: 5, moscow: 'M', planned: 3, needsMilestone: true, requires: ['lese'] },
+      { id: 'kontrola', name: 'Nedestruktivní kontrola svarů', sp: 3, value: 6, moscow: 'M', planned: 3, needsMilestone: true },
+      { id: 'turbina', name: 'Revize turbíny', sp: 5, value: 10, moscow: 'M', planned: 4, critical: true, requires: ['odstaveni', 'nahradni'] },
+      { id: 'potrubi', name: 'Výměna potrubí', sp: 4, value: 7, moscow: 'M', planned: 4, requires: ['demontaz'] },
+      { id: 'kotel', name: 'Oprava kotle', sp: 4, value: 7, moscow: 'M', planned: 5, requires: ['kontrola'] },
+      { id: 'ridici', name: 'Aktualizace řídicího systému', sp: 2, value: 6, moscow: 'M', planned: 5, requires: ['odstaveni'] },
+      { id: 'zkousky', name: 'Tlakové zkoušky a revize', sp: 3, value: 8, moscow: 'M', planned: 5, critical: true, requires: ['turbina', 'potrubi'] },
+      { id: 'najeti', name: 'Najetí bloku a zkušební provoz', sp: 3, value: 10, moscow: 'M', planned: 6, critical: true, requires: ['zkousky', 'kotel', 'ridici'] },
+      { id: 'dokumentace', name: 'Předávací dokumentace', sp: 2, value: 4, moscow: 'M', planned: 6 },
+      { id: 'izolace', name: 'Nová tepelná izolace', sp: 3, value: 4, moscow: 'S', requires: ['demontaz'] },
+      { id: 'osvetleni', name: 'Modernizace osvětlení strojovny', sp: 3, value: 3, moscow: 'S', requires: ['odstaveni'] },
+      { id: 'kamery', name: 'Kamerový dohled strojovny', sp: 2, value: 1, moscow: 'C' },
+      { id: 'nova_turbina', name: 'Výměna celé turbíny za novou', sp: 8, value: 2, moscow: 'W' },
+    ],
+    milestones: [
+      { id: 'm1', kind: 'dependency', afterSprint: 2, icon: '⏻', name: 'Odstavení bloku',
+        okText: 'Příprava je hotová a blok se odstavuje podle plánu. Od etapy 3 se může pracovat přímo na zařízení.',
+        lateText: 'Příprava nabrala skluz, blok se odstaví později. Práce na zařízení začnou až v etapě 4.' },
+      { id: 'm2', kind: 'schedule', afterSprint: 4, icon: '🔍', name: 'Kontrolní den',
+        okText: 'Polovina odstávky: hlavní práce běží podle plánu.',
+        lateText: 'Kontrolní den odhalil skluz hlavních prací. Vedení je nervózní.' },
+      { id: 'm3', kind: 'launch', afterSprint: 6, icon: '⚡', name: 'Najetí bloku',
+        okText: 'Všechny práce jsou hotové, zkoušky prošly a blok najel do sítě!',
+        lateText: 'Blok nemohl najet – nejsou hotové práce:' },
+    ],
+    gate: {
+      id: 'gate', icon: '🔍', track: 'pred', title: 'Kontrolní den: polovina odstávky',
+      text: 'Vedení elektrárny posuzuje, jestli odstávka běží podle plánu a jestli blok najede včas. Jak připravíš podklady?',
+      lesson: 'Kontrolní bod v prediktivním projektu je o přesném stavu vůči plánu: kritická cesta, čerpání rezervy, rizika a skutečně dokončené práce.',
+      choices: [
+        { text: 'Stav kritické cesty, čerpání rezervy a top rizika + prohlídka hotových prací na místě', rating: 'best', effects: { spokojenost: 10 },
+          feedback: 'Vedení vidí přesný stav a schválilo posílení noční směny tam, kde hrozí skluz.' },
+        { text: 'Prezentace, že všechno je „zelené“', rating: 'bad', effects: { spokojenost: -8 },
+          feedback: 'Ředitel se zeptal na jednu konkrétní práci a odpověď nesouhlasila s prezentací. Důvěra je pryč.' },
+        { text: 'Kontrolní den zrušit, nemáme na to čas', rating: 'bad', effects: { spokojenost: -6, harmonogram: -3 },
+          feedback: 'Vedení si stav začalo zjišťovat samo – obcházením mistrů na pracovištích.' },
+      ],
+    },
+    events: [
+      {
+        id: 'trhlina', icon: '🔍', track: 'pred', title: 'Trhlina v potrubí',
+        text: 'Nedestruktivní kontrola našla v jednom potrubí trhlinu, se kterou nikdo nepočítal. Oprava znamená práci navíc.',
+        lesson: 'I prediktivní projekt narazí na nečekané. Nová práce se zapracuje přes změnové řízení s posouzením dopadu na kritickou cestu.',
+        choices: [
+          { text: 'Změnové řízení: zařadit opravu do plánu a posoudit dopad na kritickou cestu', rating: 'best', effects: { harmonogram: -2, kvalita: 4 },
+            addItems: [{ id: 'trhlina', name: 'Oprava trhliny v potrubí', sp: 3, value: 6, moscow: 'M', planned: 5 }],
+            feedback: 'Oprava se vešla mimo kritickou cestu. Plán drží.' },
+          { text: 'Zamlčet to, potrubí ještě pár let vydrží', rating: 'bad', effects: { kvalita: -15, spokojenost: -10 },
+            feedback: 'Inspektor trhlinu našel v protokolu kontroly. Následuje mimořádná kontrola celého projektu.' },
+          { text: 'Opravit hned a stáhnout na to lidi z jiných prací', rating: 'ok', effects: { harmonogram: -6, moralka: -3 },
+            addItems: [{ id: 'trhlina', name: 'Oprava trhliny v potrubí', sp: 3, value: 6, moscow: 'M', planned: 4 }],
+            feedback: 'Oprava běží, ale jiné práce teď stojí a nikdo neví, jestli to neohrozí termín.' },
+        ],
+      },
+      {
+        id: 'svarec', icon: '👷', track: 'pred', title: 'Chybí certifikovaný svářeč',
+        text: 'Dodavatel přesunul jediného svářeče s certifikací na vysokotlaké potrubí na jinou zakázku.',
+        lesson: 'Registr rizik s připravenými reakcemi (např. záložní dodavatelé) mění krizi v rutinu.',
+        choices: [
+          { text: 'Podle registru rizik povolat záložního dodavatele', rating: 'best', needs: 'risk', effects: { rozpocet: -4 },
+            feedback: 'Záložní dodavatel byl předem prověřený. Svářeč nastoupil druhý den.' },
+          { text: 'Vyjednat svářeče od konkurence za trojnásobnou sazbu', rating: 'ok', effects: { rozpocet: -10 },
+            feedback: 'Funguje to, ale je to drahé a nejisté.' },
+          { text: 'Nechat svařovat necertifikovaného pracovníka', rating: 'bad', effects: { kvalita: -15, spokojenost: -8 },
+            feedback: 'Svary neprošly kontrolou a musí se dělat znovu. A hrozí pokuta.' },
+          { text: 'Počkat, až se svářeč vrátí', rating: 'bad', effects: { harmonogram: -6 }, capacityMod: -2,
+            feedback: 'Práce na potrubí stojí a navazující činnosti s ní.' },
+        ],
+      },
+      {
+        id: 'dily', icon: '📦', track: 'pred', title: 'Lopatky turbíny dorazí později',
+        text: 'Výrobce hlásí, že náhradní lopatky turbíny dorazí o týden později.',
+        lesson: 'Kdo zná kritickou cestu, ví, co lze přeskládat a co ne – a zpoždění jedné dodávky nemusí posunout konec projektu.',
+        choices: [
+          { text: 'Přeskládat práce mimo kritickou cestu, aby zpoždění vstřebala vůle v plánu', rating: 'best', needs: 'cpm', effects: { harmonogram: -2 },
+            feedback: 'Tým přesunul práce s vůlí dopředu. Konec projektu se nehnul.' },
+          { text: 'Zaplatit leteckou přepravu', rating: 'ok', effects: { rozpocet: -10 },
+            feedback: 'Lopatky dorazily včas, ale za cenu malého auta.' },
+          { text: 'Použít staré lopatky a vyměnit je „někdy příště“', rating: 'bad', effects: { kvalita: -12, spokojenost: -8 },
+            feedback: 'Výrobce odmítl dát na turbínu záruku.' },
+        ],
+      },
+      {
+        id: 'navic', icon: '🧰', track: 'pred', title: '„Když už to máme rozebrané…“',
+        text: 'Vedení chce odstávku využít a navíc vyměnit osvětlení celé haly a kamerový systém.',
+        lesson: 'V prediktivním projektu je rozsah pevný. Každý požadavek navíc prochází změnovým řízením – i ten, který „nic nestojí“.',
+        choices: [
+          { text: 'Změnové řízení: posoudit dopad a zařadit jen to, co se vejde mimo kritickou cestu', rating: 'best', effects: { spokojenost: 3 },
+            feedback: 'Osvětlení se udělá v příští odstávce, kamery se vešly do vůle v plánu.' },
+          { text: 'Přidat všechno do plánu', rating: 'bad', effects: { harmonogram: -6, rozpocet: -6, spokojenost: 4 },
+            addItems: [{ id: 'hala', name: 'Výměna osvětlení celé haly', sp: 4, value: 2, moscow: 'M', planned: 6 }],
+            feedback: 'Vedení má radost, ale do už tak napjatého plánu přibyla velká práce.' },
+          { text: 'Odmítnout bez posouzení', rating: 'ok', effects: { spokojenost: -8 },
+            feedback: 'Plán je chráněný, ale vedení se cítí odbyté.' },
+        ],
+      },
+      {
+        id: 'unava', icon: '🌙', track: 'pred', title: 'Únava na směnách',
+        text: 'Směny jedou 12 hodin denně několik týdnů v kuse. Přibývá drobných chyb.',
+        lesson: 'Únava je bezpečnostní riziko. I v pevném okně se vyplatí dodržet limity směn a mít kapacitu v rezervě.',
+        choices: [
+          { text: 'Dodržet limity směn a posílit noční směnu', rating: 'best', effects: { moralka: 8, rozpocet: -5 },
+            feedback: 'Chyby ubyly a lidé mají sílu na finiš.' },
+          { text: 'Přidat ještě víc přesčasů', rating: 'bad', effects: { moralka: -12, kvalita: -6 },
+            feedback: 'Další týden dva úrazy a jedna vážná chyba při montáži.' },
+          { text: 'Volno dát až po najetí bloku', rating: 'ok', effects: { moralka: -4 },
+            feedback: 'Lidé to vydrží, ale chyby zatím nemizí.' },
+        ],
+      },
+      {
+        id: 'skoronehoda', icon: '⚠️', track: 'pred', title: 'Skoronehoda na lešení',
+        text: 'Z lešení spadl klíč a minul montéra o metr. Nikomu se nic nestalo.',
+        lesson: 'Skoronehody jsou varování zdarma. Prošetří se bez hledání viníka a upraví se postup.',
+        choices: [
+          { text: 'Zastavit práce na lešení, prošetřit příčinu bez hledání viníka a upravit postup', rating: 'best', effects: { harmonogram: -2, kvalita: 6, moralka: 3 },
+            feedback: 'Na lešení přibyly sítě a úložné boxy. Lidé vidí, že bezpečnost se myslí vážně.' },
+          { text: 'Pokračovat, nic se nestalo', rating: 'bad', effects: { kvalita: -8, moralka: -6 },
+            feedback: 'O týden později spadlo něco těžšího.' },
+          { text: 'Potrestat montéra, kterému klíč upadl', rating: 'bad', effects: { moralka: -12 },
+            feedback: 'Další skoronehody už nikdo nehlásí.' },
+        ],
+      },
+      {
+        id: 'sit', icon: '🔌', track: 'pred', title: 'Síť chce blok dřív',
+        text: 'Provozovatel přenosové soustavy žádá najet blok o dva dny dřív kvůli očekávané mrazivé špičce.',
+        lesson: 'Zkrácení termínu se posuzuje na kritické cestě. Zkracovat zkoušky a kontroly kvůli rychlosti se nevyplácí.',
+        choices: [
+          { text: 'Posoudit kritickou cestu a nabídnout najetí na částečný výkon bez zkrácení zkoušek', rating: 'best', effects: { spokojenost: 5, harmonogram: -2 },
+            feedback: 'Provozovatel sítě dostal částečný výkon dřív a plný včas.' },
+          { text: 'Slíbit dřívější najetí a zkrátit zkoušky', rating: 'bad', effects: { kvalita: -12, spokojenost: 4 },
+            feedback: 'Zkoušky se odbyly a při najetí praskl ventil.' },
+          { text: 'Odmítnout', rating: 'ok', effects: { spokojenost: -5 },
+            feedback: 'Plán drží, ale vztah s provozovatelem sítě utrpěl.' },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'startup',
+    name: 'Startup Zachraň jídlo',
+    icon: '🚀',
+    tagline: 'Aplikace proti plýtvání jídlem',
+    context: ['nejistota_trhu', 'omezene_zdroje', 'rychla_zpetna_vazba'],
+    approach: 'agile',
+    scope: 'Mobilní aplikace, získávání partnerských podniků, marketing, uživatelský výzkum a obchodní model. Nikdo zatím neví, co přesně bude fungovat.',
+    approachText: 'Vysoká nejistota: neví se, co uživatelé chtějí, ani jaký obchodní model bude fungovat. Celý projekt se nejlépe řídí agilně: krátké iterace, ověřování hypotéz a rozhodování podle dat. Detailní plán by stál na neověřených předpokladech.',
+    intro: 'Spoluzakládáš startup, který propojí restaurace a obchody se zbylým jídlem s lidmi v okolí. Peníze vystačí na 12 týdnů – do té doby musíš ukázat, že o aplikaci lidé stojí.',
+    baseCapacity: 7,
+    targetValue: 65,
+    terms: {
+      launch: 'spuštění aplikace',
+      predShort: '–',
+      agileShort: 'celý produkt',
+      users: 'uživatelé',
+      usersGen: 'uživatelů',
+      sponsor: 'hlavní investor',
+      poGood: 'spoluzakladatelka zodpovědná za produkt',
+      committee: 'investoři',
+    },
+    workstreams: [
+      { id: 'mvp', icon: '📱', name: 'Mobilní aplikace (MVP)', answer: 'agile',
+        why: 'Co má aplikace umět, ukážou až uživatelé. Malé verze, rychlá zpětná vazba, úpravy.' },
+      { id: 'vyzkum', icon: '🗣️', name: 'Uživatelský výzkum', answer: 'agile',
+        why: 'Výzkum běží průběžně a jeho otázky se mění podle toho, co se tým právě dozvěděl.' },
+      { id: 'partneri', icon: '🍽️', name: 'Získávání partnerských podniků', answer: 'agile',
+        why: 'Jaký přístup podniky přesvědčí, se zjistí jen zkoušením – pilot s pár podniky, pak úprava.' },
+      { id: 'marketing', icon: '📣', name: 'Marketing a růst', answer: 'agile',
+        why: 'Kanály a sdělení se testují v krátkých experimentech a peníze jdou tam, kde to funguje.' },
+      { id: 'model', icon: '💰', name: 'Obchodní model a ceny', answer: 'agile',
+        why: 'Pozor, i když to zní jako plánování: kolik lidé a podniky zaplatí, dopředu nikdo neví. Ověřuje se experimenty.' },
+      { id: 'znacka', icon: '🎨', name: 'Značka a design', answer: 'agile',
+        why: 'Design se ladí s uživateli; první verze může být jednoduchá a postupně se zlepšovat.' },
+      { id: 'data', icon: '📊', name: 'Měření a analytika', answer: 'agile',
+        why: 'Co měřit, se upřesňuje s tím, jak tým poznává svůj produkt a trh.' },
+      { id: 'investori', icon: '🤝', name: 'Jednání s investory', answer: 'agile',
+        why: 'Pitch se ladí podle reakcí investorů a podle čerstvých dat o trakci – iterativní práce.' },
+    ],
+    // value = odhad (hypotéza), actual = skutečná hodnota, kterou tým pozná po dodání nebo experimentem
+    backlog: [
+      { id: 'nabidka', name: 'Zveřejnění nabídky zbylého jídla', sp: 3, value: 8, actual: 9, moscow: 'M' },
+      { id: 'registrace', name: 'Registrace uživatele', sp: 2, value: 5, actual: 4, moscow: 'M' },
+      { id: 'mapa', name: 'Mapa nabídek v okolí', sp: 3, value: 9, actual: 3, moscow: 'M', requires: ['nabidka'] },
+      { id: 'rezervace', name: 'Rezervace a vyzvednutí jídla', sp: 5, value: 8, actual: 10, moscow: 'M', requires: ['nabidka', 'registrace'], reveals: ['notifikace'] },
+      { id: 'platba', name: 'Platba v aplikaci', sp: 5, value: 7, actual: 8, moscow: 'M', requires: ['rezervace'] },
+      { id: 'hodnoceni', name: 'Hodnocení podniků', sp: 3, value: 7, actual: 2, moscow: 'S', requires: ['registrace'] },
+      { id: 'chat', name: 'Chat s podnikem', sp: 3, value: 7, actual: 1, moscow: 'S', requires: ['registrace'] },
+      { id: 'vernost', name: 'Věrnostní program', sp: 5, value: 5, actual: 3, moscow: 'S', requires: ['rezervace'] },
+      { id: 'uspory', name: 'Počítadlo zachráněného jídla a CO₂', sp: 3, value: 3, actual: 7, moscow: 'C', requires: ['registrace'], reveals: ['sdileni'] },
+      { id: 'ai', name: 'AI doporučení jídel', sp: 5, value: 9, actual: 2, moscow: 'C', requires: ['rezervace'] },
+      { id: 'tmavy', name: 'Tmavý režim', sp: 1, value: 1, actual: 1, moscow: 'C' },
+      { id: 'firmy', name: 'Balíčky pro firemní kantýny', sp: 5, value: 2, actual: 10, moscow: 'C', requires: ['nabidka'] },
+      { id: 'socialni', name: 'Přihlášení přes sociální sítě', sp: 2, value: 6, actual: 1, moscow: 'S', requires: ['registrace'] },
+      { id: 'web', name: 'Webová verze aplikace', sp: 5, value: 6, actual: 3, moscow: 'S', requires: ['nabidka'] },
+      { id: 'oblibene', name: 'Oblíbené podniky', sp: 2, value: 3, actual: 6, moscow: 'S', requires: ['registrace'] },
+      { id: 'podniky', name: 'Statistiky prodeje pro podniky', sp: 3, value: 4, actual: 7, moscow: 'S', requires: ['nabidka'] },
+      { id: 'recepty', name: 'Recepty ze zbytků', sp: 3, value: 7, actual: 2, moscow: 'C' },
+      { id: 'odznaky', name: 'Odznaky a žebříčky zachránců', sp: 3, value: 7, actual: 1, moscow: 'C', requires: ['registrace'] },
+      { id: 'pripominka', name: 'Připomínka vyzvednutí', sp: 2, value: 2, actual: 6, moscow: 'C', requires: ['rezervace'] },
+      { id: 'charita', name: 'Darování neprodaného jídla charitě', sp: 5, value: 4, actual: 5, moscow: 'C', requires: ['nabidka'] },
+    ],
+    // Položky, které se objeví až po dodání jiné funkce (reveals)
+    discoveries: [
+      { id: 'notifikace', name: 'Upozornění na jídlo v okolí', sp: 2, value: 8, actual: 9, moscow: 'M', requires: ['rezervace'],
+        why: 'Po spuštění rezervací uživatelé píšou: „Dejte mi vědět, když se v okolí něco objeví!“' },
+      { id: 'sdileni', name: 'Sdílení úspor na sociálních sítích', sp: 2, value: 6, actual: 7, moscow: 'S', requires: ['uspory'],
+        why: 'Uživatelé si počítadlo úspor fotí a sdílejí. Chtějí to umět přímo z aplikace.' },
+    ],
+    milestones: [
+      { id: 'm1', kind: 'traction', afterSprint: 2, icon: '🌱', name: 'První uživatelé', target: 14,
+        okText: 'První uživatelé aplikaci používají a vracejí se.',
+        lateText: 'Aplikace zatím uživatelům nepřináší dost hodnoty.' },
+      { id: 'm2', kind: 'traction', afterSprint: 4, icon: '🎤', name: 'Demo day', target: 32,
+        okText: 'Na demo day můžeš ukázat rostoucí čísla.',
+        lateText: 'Na demo day nejsou čísla, která by investory přesvědčila.' },
+      { id: 'm3', kind: 'traction', afterSprint: 6, icon: '🚀', name: 'Veřejné spuštění', target: 52,
+        okText: 'Aplikace má trakci: lidé ji používají a doporučují dál!',
+        lateText: 'Aplikace je venku, ale trakce je slabá.' },
+    ],
+    gate: {
+      id: 'gate', icon: '🎤', track: 'agile', title: 'Demo day: další peníze?',
+      text: 'Investoři rozhodují, jestli startup dostane peníze na dalších 6 měsíců. Co jim ukážeš?',
+      lesson: 'V agilním projektu je nejlepším podkladem pro rozhodnutí fungující produkt a data o tom, co se tým naučil – včetně neúspěchů.',
+      choices: [
+        { text: 'Živý produkt, metriky trakce a co jsme se naučili (i co nefungovalo)', rating: 'best', effects: { spokojenost: 10, rozpocet: 6 },
+          feedback: 'Investory zaujalo, jak rychle se tým učí. Peníze na další období jsou jisté.' },
+        { text: 'Slajdy s velkou vizí a odhady trhu, bez dat', rating: 'bad', effects: { spokojenost: -6 },
+          feedback: '„Hezká vize. A kolik lidí to dnes používá?“ Ticho.' },
+        { text: 'Demo odložit, až bude hotové všechno', rating: 'bad', effects: { spokojenost: -8, rozpocet: -5 },
+          feedback: 'Investoři odložili rozhodnutí a peníze se tenčí.' },
+      ],
+    },
+    events: [
+      {
+        id: 'jinak', icon: '🤔', track: 'agile', title: 'Uživatelé to používají jinak',
+        text: 'Data ukazují, že lidé aplikaci otevírají hlavně v pátek odpoledne – kvůli pečivu z pekáren, ne kvůli restauracím.',
+        lesson: 'Data o chování uživatelů jsou cennější než původní vize. Zjištění se ověří a promítnou do backlogu.',
+        choices: [
+          { text: 'Ověřit to rozhovory s uživateli a upravit backlog', rating: 'best', effects: { spokojenost: 5, kvalita: 3 },
+            addItems: [{ id: 'pekarny', name: 'Páteční nabídka pekáren', sp: 3, value: 9, actual: 10, moscow: 'M', requires: ['nabidka'] }],
+            feedback: 'Rozhovory to potvrdily. Do backlogu přibyla páteční nabídka pekáren.' },
+          { text: 'Držet se původní vize: restaurace', rating: 'bad', effects: { spokojenost: -6 },
+            feedback: 'Uživatelé dál chodí pro pečivo – jen to aplikace nijak nepodporuje.' },
+          { text: 'Okamžitě všechno přestavět na pekárny', rating: 'ok', effects: { moralka: -6, harmonogram: -4 },
+            addItems: [{ id: 'pekarny', name: 'Páteční nabídka pekáren', sp: 3, value: 9, actual: 10, moscow: 'M', requires: ['nabidka'] }],
+            feedback: 'Možná správný směr, ale bez ověření a s rozhozeným sprintem.' },
+        ],
+      },
+      {
+        id: 'konkurence', icon: '🏁', track: 'agile', title: 'Velká konkurence',
+        text: 'Velká rozvozová firma oznámila podobnou funkci ve své aplikaci.',
+        lesson: 'Proti velkým hráčům vyhrává startup rychlostí učení a zaměřením, ne kopírováním.',
+        choices: [
+          { text: 'Zaměřit se na to, v čem jsme jiní (lokální podniky, komunita), a otestovat to', rating: 'best', effects: { spokojenost: 3, kvalita: 2 },
+            feedback: 'Lokální podniky oceňují, že je startup zná osobně. Test potvrdil zájem.' },
+          { text: 'Okopírovat všechny jejich funkce', rating: 'bad', effects: { moralka: -8, kvalita: -5 },
+            feedback: 'Tým dohání obra v jeho hře. Nemá šanci.' },
+          { text: 'Ignorovat to', rating: 'ok', effects: { spokojenost: -4 },
+            feedback: 'Nic se nezměnilo – ale tým neví, jak se odlišit.' },
+        ],
+      },
+      {
+        id: 'pivot', icon: '🔄', track: 'agile', title: 'Firmy se ozývají',
+        text: 'Tři firmy se ozvaly, že by přes aplikaci chtěly nabízet zbylé jídlo z kantýn zaměstnancům. Je to úplně jiný segment.',
+        lesson: 'Pivot je změna strategie na základě ověřeného učení – ne panická reakce, ani tvrdohlavé lpění na původní vizi.',
+        choices: [
+          { text: 'Ověřit hypotézu levným experimentem (landing page + 5 rozhovorů), pak rozhodnout', rating: 'best', effects: { kvalita: 3, spokojenost: 2 }, verify: ['firmy'],
+            feedback: 'Experiment ukázal velký zájem. Hodnota položky „Balíčky pro firemní kantýny“ je teď ověřená.' },
+          { text: 'Okamžitě pivotovat na firmy a zahodit zbytek', rating: 'ok', effects: { moralka: -5, spokojenost: 2 }, dropScope: 'S',
+            feedback: 'Odvážné, ale bez ověření. Tým zahodil i rozpracované nápady.' },
+          { text: 'Odmítnout – to není naše vize', rating: 'bad', effects: { spokojenost: -4 },
+            feedback: 'Příležitost odešla jinam.' },
+        ],
+      },
+      {
+        id: 'runway', icon: '💸', track: 'agile', title: 'Docházejí peníze',
+        text: 'Peníze vystačí sotva na zbytek plánovaného období. Investor chce vidět, že produkt má smysl.',
+        lesson: 'Při omezených zdrojích se zaměř na metriku, která ukazuje skutečnou hodnotu, a škrtni vše, co k ní nevede.',
+        choices: [
+          { text: 'Soustředit se na opakované rezervace a škrtnout „Could“ funkce', rating: 'best', effects: { rozpocet: 6 }, dropScope: 'C',
+            feedback: 'Tým dělá jen to, co zvedá opakované používání. Peníze vydrží.' },
+          { text: 'Utratit zbytek za reklamu, ať jsou čísla', rating: 'bad', effects: { rozpocet: -12, spokojenost: 2 },
+            feedback: 'Stažení vyskočila, ale lidé se nevracejí. A peníze jsou pryč.' },
+          { text: 'Zmrazit vývoj a šetřit', rating: 'ok', effects: { spokojenost: -6 }, capacityMod: -2,
+            feedback: 'Peníze vydrží déle, ale produkt se nehýbe.' },
+        ],
+      },
+      {
+        id: 'vypadek', icon: '🔥', track: 'agile', title: 'Výpadek v pátek večer',
+        text: 'Aplikace spadla v pátek večer – přesně ve chvíli největšího provozu.',
+        lesson: 'Incident je příležitost zlepšit proces. Hledá se příčina v systému, ne viník.',
+        choices: [
+          { text: 'Opravit, pak retrospektiva bez hledání viníka + monitoring a testy do Definition of Done', rating: 'best', effects: { kvalita: 6 },
+            feedback: 'Příčina nalezena, monitoring teď upozorní dřív, než si všimnou uživatelé.' },
+          { text: 'Zjistit, kdo to pokazil', rating: 'bad', effects: { moralka: -10 },
+            feedback: 'Tým je vystrašený a chyby se začnou zametat pod koberec.' },
+          { text: 'Zaplatit silnější servery a dál to neřešit', rating: 'ok', effects: { rozpocet: -6 },
+            feedback: 'Pomohlo to, ale skutečná příčina zůstala.' },
+        ],
+      },
+      {
+        id: 'sms', icon: '📲', track: 'agile', title: 'Podniky nechtějí další tablet',
+        text: 'Partnerské restaurace odmítají instalovat aplikaci pro podniky. „Pošlete nám SMS, my odpovíme.“',
+        lesson: 'Nejjednodušší řešení, které uživatelům funguje, je často to nejlepší MVP.',
+        choices: [
+          { text: 'Udělat nejjednodušší verzi přes SMS a otestovat ji se třemi podniky', rating: 'best', effects: { spokojenost: 5 },
+            addItems: [{ id: 'sms', name: 'Zadávání nabídky přes SMS', sp: 2, value: 7, actual: 8, moscow: 'M' }],
+            feedback: 'Podniky jsou nadšené. Za dva dny bylo nových nabídek víc než za celý měsíc.' },
+          { text: 'Trvat na aplikaci pro podniky', rating: 'bad', effects: { spokojenost: -8 },
+            feedback: 'Dva podniky spolupráci ukončily.' },
+          { text: 'Najmout obchodníky, kteří je přesvědčí', rating: 'ok', effects: { rozpocet: -8 },
+            feedback: 'Pár podniků přesvědčili, ale drahou cestou.' },
+        ],
+      },
+    ],
+  },
 ];
 
 const GLOSSARY = [
@@ -1068,5 +1584,11 @@ const GLOSSARY = [
   ['Režie řízení', 'Čas a energie, které stojí porady, reporty a schvalování. Každá praktika něco přináší, ale také něco stojí.'],
   ['WIP limit', 'Kanbanové omezení počtu rozpracovaných úkolů. Brání přetížení a urychluje dokončování.'],
   ['Water-Scrum-Fall', 'Antivzorec: agilní sprinty sevřené detailním předem schváleným plánem. Rituály zůstanou, přínosy agility zmizí.'],
+  ['Kritická cesta (CPM)', 'Nejdelší řetězec navazujících činností. Zpoždění kterékoli z nich posune konec projektu; ostatní činnosti mají vůli.'],
+  ['Rezerva projektu', 'Společná časová rezerva na konci projektu, ze které se kryjí zpoždění na kritické cestě.'],
+  ['Earned Value Management', 'Metoda měření stavu projektu: porovnává plánovanou, skutečně odvedenou práci a náklady (SPI, CPI).'],
+  ['Build–Measure–Learn', 'Cyklus Lean Startupu: postav co nejmenší experiment, změř reakci uživatelů a pouč se dřív, než investuješ víc.'],
+  ['Pivot', 'Zásadní změna strategie produktu na základě ověřeného učení.'],
+  ['Big Design Up Front', 'Snaha vše detailně navrhnout a naplánovat předem. Vhodné při jasném zadání, škodlivé při velké nejistotě.'],
   ['Goodhartův zákon', '„Když se z ukazatele stane cíl, přestane být dobrým ukazatelem.“ Typicky velocity jako bonusová metrika.'],
 ];
