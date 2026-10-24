@@ -52,8 +52,30 @@ Společné mechaniky náročné úrovně:
   dopadne jako *dozvuky po projektu*;
 - **dilemata** – události, kde i nejlepší volba něco stojí.
 
+**🤯 Nemožná úroveň** (odemkne se po dosažení 70 bodů v kterémkoli projektu náročné úrovně;
+pro testování adresou s parametrem `?insane`):
+
+| Scénář | Typ | Co je na něm nemožné |
+|---|---|---|
+| 🚑 Záchrana projektu v krizi | hybridní | přebíráš rozjetý projekt se špatným mixem a aktivními antivzorci; nejdřív **diagnóza** (od příznaků k mechanismům), pak **zásah** do mixu; na dokončení jen 4 sprinty |
+| 🔀 Fúze dvou firem | hybridní | banka a fintech v jednom projektu: střet kultur, směrnic a slovníku; uprostřed odcházejí zakladatelé i s lidmi |
+| 🦎 Projekt, který mění tvář | prediktivní → hybridní → agilní | povaha projektu se **dvakrát změní** a mix je potřeba pokaždé přeskládat |
+
+Pravidla, která platí **jen** pro nemožnou úroveň:
+1. **Bez nápověd** – žádné hodnocení voleb, popisy mechanik praktik, synergie ani vzorce během hry; všechno se ukáže až na konci.
+2. **Mlha reportingu** – ukazatele jen v rozmezí a o období zpožděné; přesná čísla dá jen praktika
+   *Transparentní dashboard* nebo *EVM*. Když je něco opravdu špatně, přijdou aspoň neformální signály.
+3. **Konfliktní stakeholdeři** – tři strany s různými zájmy; každá sleduje „své“ položky backlogu,
+   kdo dlouho nic nedostane, ztrácí trpělivost. Když některá klesne na 12, projekt končí.
+4. **Projekt, nebo provoz?** – v rozdělení práce je třetí možnost ⚙️ Provoz a v backlogu rutina,
+   kterou je třeba předat linii (tlačítko ⚙️ do provozu). Rutina řízená jako projekt ukrajuje kapacitu.
+5. **Lidé a znalosti** – pojmenovaní lidé s oblastmi znalostí a únavou. Práce v oblasti, kterou nikdo
+   neumí, je o polovinu pracnější; přetížení lidé vyhoří a odejdou i se znalostmi; sdílení znalostí je šíří.
+6. **Rok poté** – po konci projektu epilog: kvalita, předání do provozu, znalosti v týmu, lidé,
+   hranice projektu a podpora stakeholderů. Udržitelnost tvoří 20 % skóre.
+
 Typ projektu hráč předem nevidí – určí ho v první fázi a hra ho odhalí až po vyhodnocení.
-Každá hra vylosuje události scénáře a obecné události pro daný typ projektu (celkem 52 událostí)
+Každá hra vylosuje události scénáře a obecné události pro daný typ projektu (celkem 107 událostí)
 a odpovědi se pokaždé zamíchají. Nejlepší skóre každého scénáře se ukládá v prohlížeči.
 
 ## Jak hrát
@@ -100,6 +122,7 @@ python3 -m http.server 8765
 - `css/style.css` – vzhled (světlý i tmavý režim, mobil)
 - `js/data.js` – veškerý obsah hry: `SCENARIOS`, `PRACTICES`, `PRACTICE_PAIRS`, `ESSENTIALS`,
   `APPROACHES`, `PATTERNS`, `CONTEXT_TAGS`, `GENERIC_EVENTS`, `GATE_EVENT`, `GLOSSARY`
+- `js/data-insane.js` – projekty nemožné úrovně (přidávají se do `SCENARIOS`)
 - `js/game.js` – herní logika a vykreslování
 
 ### Jak přidat obsah
@@ -127,6 +150,14 @@ python3 -m http.server 8765
     jako výluky (`window: true`), více profesí (`crew: { obecne, svarec, jerab }`, `skill` u úkolu),
     inspekční dny (`holdDay`) a hrubé odhady (`rough`). Hybridní náročný projekt umí milníky `integration`
     (`requires`) a fatální start (`launch` s `fatal: true`).
+  - nemožná úroveň: `level: 'insane'`, `stakeholders` (`wants`, `start`, `quit`, `epilogBad`, `joins`),
+    `areas` a `team` (lidé s `knows`, `fatigue`), položky backlogu s `area`, `owner`, `ops` (rutina)
+    a `handover` (předání do provozu), `eventSlots` (pro každé období seznam možných událostí),
+    `workstreams` s odpovědí `ops`, `startMetrics`, `sprints`. Převzatý projekt: `takeover`
+    (`mix`, `symptoms`, `distractors`, `removeBonus`, `lesson`, `diagLesson`). Víc změn kontextu:
+    `shifts` (každá s `after`, volitelně `approach`, `context`, `addStakeholders`, `team`, `maxAdds`;
+    `needs` může být seznam skupin praktik, z každé aspoň jedna). Volby navíc umí `stake`
+    (změny spokojenosti stakeholderů) a `team` (`fatigue`, `teach`, `leave`, `join`).
 
 Každá volba má `rating` (`best` / `ok` / `bad`), `effects` na ukazatele a volitelně
 `capacityMod` (změna kapacity příštího období), `dropScope` (vyřazení položek MoSCoW kategorie),

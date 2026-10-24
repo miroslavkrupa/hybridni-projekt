@@ -18,6 +18,8 @@
   --warn-soft: #fbf1d6;
   --bad: #d64545;
   --bad-soft: #fbe3e3;
+  --insane: #8a3fd1;
+  --insane-soft: #f1e6fb;
   --radius: 14px;
   --shadow: 0 2px 0 rgba(35, 33, 43, .06), 0 8px 24px rgba(35, 33, 43, .06);
 }
@@ -36,6 +38,8 @@
     --good-soft: #17331f;
     --warn-soft: #3a3115;
     --bad-soft: #3d1c1c;
+    --insane: #b47cf0;
+    --insane-soft: #2e1d40;
     --shadow: 0 2px 0 rgba(0, 0, 0, .3);
   }
 }
@@ -521,6 +525,86 @@ h4 { margin: 14px 0 6px; font-size: 1rem; }
 .pattern-grid .kfmd li { grid-template-columns: 1fr; gap: 0; }
 .modal { max-width: 900px; }
 
+/* ---------- Nemožná úroveň ---------- */
+.project-row.insane { border-left: 6px solid var(--insane); }
+.project-row.insane:hover:not(:disabled) { border-color: var(--insane); }
+.level-head.insane h3 { color: var(--insane); }
+.hard-badge.insane { color: var(--insane); background: var(--insane-soft); }
+.insane-rule { color: var(--ink); background: var(--insane-soft); border-left: 4px solid var(--insane); border-radius: 8px; padding: 10px 12px; list-style: none; margin-top: 8px; }
+.insane-rule ol { margin: 8px 0 0; padding-left: 20px; }
+.insane-rule ol li { margin-bottom: 4px; }
+
+/* Mlha reportingu */
+.meter.fog { border-style: dashed; }
+.meter.fog .bar i { opacity: .45; background-image: repeating-linear-gradient(45deg, transparent 0 4px, rgba(255, 255, 255, .35) 4px 8px); }
+.meter.fog b { font-weight: 600; color: var(--muted); }
+.fog-note { margin: -4px 0 8px; font-size: .82rem; color: var(--muted); }
+.signals { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--warn-soft); font-size: .9rem; }
+.signals p { margin: 2px 0; }
+
+/* Stakeholdeři */
+.stake-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.stake { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.stake.low { border-color: var(--bad); }
+.stake-icon { font-size: 1.3rem; }
+.stake b { display: block; font-size: .85rem; }
+.stake small { display: block; font-size: .72rem; color: var(--muted); line-height: 1.25; }
+.stake .mood { font-weight: 700; white-space: nowrap; }
+.people-list { list-style: none; padding: 0; margin: 0 auto 12px; max-width: 560px; text-align: left; font-size: .92rem; }
+.people-list li { padding: 3px 0; }
+.owner { font-size: .9rem; }
+
+/* Tým a znalosti */
+.team { margin-top: 16px; }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; }
+.person { display: grid; grid-template-columns: 32px 1fr 64px; align-items: center; gap: 8px; background: var(--bg); border-radius: 10px; padding: 8px 10px; }
+.person.gone { opacity: .45; }
+.p-icon { font-size: 1.4rem; }
+.p-main b { display: block; }
+.p-main small { display: block; color: var(--muted); font-size: .78rem; }
+.knows { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; font-size: .72rem; }
+.knows span { background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 1px 7px; }
+.knows span.solo { border-color: var(--warn); }
+.people-list .knows { display: inline-flex; margin: 0 0 0 4px; }
+.p-fatigue { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 1.2rem; }
+.fbar { display: block; width: 100%; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.fbar i { display: block; height: 100%; background: var(--warn); }
+.bl-name .area { display: block; font-size: .74rem; color: var(--muted); }
+.bl-name .area.unknown { color: var(--bad); font-weight: 600; }
+.sp.over { color: var(--bad); font-weight: 700; }
+.ops-btn { border-color: var(--muted); color: var(--muted); background: var(--bg); }
+.btn.toggle.on.ops { background: var(--bg); border-color: var(--muted); font-weight: 600; }
+.team-note { margin: 4px 0; font-size: .92rem; }
+.pp-orig { font-size: .76rem; font-weight: 600; color: var(--muted); }
+.choice.picked.neutral { border-color: var(--primary); background: var(--both-soft); }
+.feedback.neutral { background: var(--bg); border: 1px solid var(--line); }
+
+/* Diagnóza převzatého projektu */
+.symptoms { margin: 0 0 8px; padding-left: 20px; }
+.symptoms li { margin-bottom: 6px; }
+.diag-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 16px 0; }
+.diag-card {
+  font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+  display: grid; grid-template-columns: 32px 1fr; gap: 2px 8px; align-items: start;
+  background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px;
+}
+.diag-card .pattern-icon { grid-row: span 2; font-size: 1.4rem; }
+.diag-card small { color: var(--muted); font-size: .82rem; }
+.diag-card.on { border-color: var(--bad); background: var(--bad-soft); }
+.diag-card:disabled { cursor: default; }
+
+/* Rok poté */
+.epilog-list { display: grid; gap: 10px; margin-bottom: 16px; }
+.epilog-card { position: relative; margin: 0; border-left: 6px solid var(--line); padding-right: 64px; }
+.epilog-card.good { border-left-color: var(--good); }
+.epilog-card.bad { border-left-color: var(--bad); }
+.epilog-card h3 { margin: 2px 0 4px; }
+.epilog-card p { margin: 0; }
+.ep-when { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.ep-pts { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.3rem; font-weight: 800; }
+.epilog-card.good .ep-pts { color: var(--good); }
+.epilog-card.bad .ep-pts { color: var(--bad); }
+
 /* ---------- Mobil ---------- */
 @media (max-width: 760px) {
   h1 { font-size: 1.7rem; }
@@ -552,4 +636,7 @@ h4 { margin: 14px 0 6px; font-size: 1rem; }
   .bl-item { grid-template-columns: 22px 50px 1fr auto; }
   .bl-item .val { display: none; }
   .brand small { display: none; }
+  .stake-row { grid-template-columns: 1fr; }
+  .stake small { display: none; }
+  .bl-row .ops-btn { align-self: flex-end; padding: 4px 10px; }
 }
