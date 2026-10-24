@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Editory
+.vscode/
+.idea/
+*.swp
+
+# Lokální nastavení Claude Code (launch.json se verzuje)
+.claude/settings.local.json
