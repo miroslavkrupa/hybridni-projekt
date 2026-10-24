@@ -166,9 +166,10 @@ p, li, small { text-wrap: pretty; }
 .project-row.locked { opacity: .5; cursor: not-allowed; }
 .project-row.locked .pr-meta { color: var(--muted); }
 
-.level-title { margin: 18px 0 8px; }
-.level-title.hard { color: var(--bad); }
-.level-hint { margin-top: -4px; }
+.level-head { text-align: center; margin: 22px auto 12px; max-width: 680px; }
+.level-head h3 { margin: 0 0 4px; font-size: 1.2rem; }
+.level-head p { margin: 0; color: var(--muted); font-size: .92rem; }
+.level-head.hard h3 { color: var(--bad); }
 .hard-badge { display: inline-block; font-weight: 700; color: var(--bad); background: var(--bad-soft); padding: 4px 12px; border-radius: 99px; margin: -4px 0 12px; }
 .hard-rule { color: var(--bad); }
 .ctx.hidden-ctx { background: var(--bg); color: var(--muted); border: 1px dashed var(--muted); }

@@ -8,7 +8,7 @@ const START_METRIC = 50;
 const OVERHEAD_BUDGET = 8;
 const MILESTONE_THRESHOLD = 45;
 const MIX_INSIGHT_MAX = 80;
-// Úroveň Hard: menší rozpočet režie, nižší start ukazatelů, dřívější konec projektu.
+// Náročná úroveň (Hard): menší rozpočet režie, nižší start ukazatelů, dřívější konec projektu.
 const HARD = { budget: 6, startMetric: 40, failAt: 10 };
 const HARD_UNLOCK_SCORE = 70;
 // Změna kontextu: kolik praktik lze přidat a co každá stojí.
@@ -1072,13 +1072,17 @@ function intro() {
       <button class="tile soft tile-btn" data-action="atlas"><b>🗺️ Atlas vzorců</b><p>Objeveno ${atlas.length} z ${PATTERNS.length} vzorců a antivzorců.</p></button>
     </div>
     <h2 class="section-title">Vyber si projekt</h2>
-    <h3 class="level-title">Úroveň Normal</h3>
+    ${levelHead('', '🌱', 'Základní úroveň',
+      `Pět projektů na seznámení se hrou: tři hybridní, jeden prediktivní a jeden agilní. Ukazatele startují na ${START_METRIC}, na mix praktik máš ${OVERHEAD_BUDGET} bodů režie a projekt končí, až když některý ukazatel klesne na nulu.`)}
     <div class="project-list">${SCENARIOS.filter(sc => sc.level !== 'hard').map(row).join('')}</div>
-    <h3 class="level-title hard">🔥 Úroveň Hard</h3>
-    <p class="hint level-hint">${unlocked
-      ? 'Méně zdrojů, skrytý faktor, změna kontextu uprostřed projektu a rozhodnutí, která se vrací. Projekt končí už při poklesu ukazatele na 10.'
-      : `Odemkne se, až v kterémkoli projektu úrovně Normal dosáhneš alespoň ${HARD_UNLOCK_SCORE} bodů.`}</p>
+    ${levelHead('hard', '🔥', 'Náročná úroveň', unlocked
+      ? `Méně zdrojů, skrytý faktor, změna kontextu uprostřed projektu a rozhodnutí, která se vrací. Ukazatele startují na ${HARD.startMetric}, na mix praktik máš ${HARD.budget} bodů režie a projekt končí už při poklesu ukazatele na ${HARD.failAt}.`
+      : `Odemkne se, až v kterémkoli projektu základní úrovně dosáhneš alespoň ${HARD_UNLOCK_SCORE} bodů. Čeká tě méně zdrojů, skrytý faktor, změna kontextu a rozhodnutí, která se vrací.`)}
     <div class="project-list">${SCENARIOS.filter(sc => sc.level === 'hard').map(row).join('')}</div>`;
+}
+
+function levelHead(cls, icon, title, text) {
+  return `<div class="level-head ${cls}"><h3>${icon} ${title}</h3><p>${text}</p></div>`;
 }
 
 function brief() {
@@ -1087,7 +1091,7 @@ function brief() {
     <div class="hero card">
       <div class="hero-emoji">${sc.icon}</div>
       <h1>${sc.name}</h1>
-      ${sc.level === 'hard' ? '<p class="hard-badge">🔥 Úroveň Hard</p>' : ''}
+      ${sc.level === 'hard' ? '<p class="hard-badge">🔥 Náročná úroveň</p>' : ''}
       <p class="lead">${sc.intro}</p>
       <p><b>Co projekt zahrnuje:</b> ${sc.scope}</p>
       <p><b>Kontext projektu:</b></p>
@@ -1308,7 +1312,7 @@ function kickoff() {
       <ul class="rules">
         ${kickoffRules().map(r => `<li>${r}</li>`).join('')}
         <li>Tvůj mix praktik působí celou dobu – a postupně odhalíš, jaké <b>vzorce a antivzorce</b> v projektu vytvořil.</li>
-        ${isHard() ? `<li class="hard-rule">🔥 <b>Hard:</b> rozpočet režie jen ${budget()} bodů, ukazatele začínají na ${HARD.startMetric} a projekt končí už při poklesu na ${HARD.failAt}. Po ${gateAfter()}. ${per().gen === 'etapy' ? 'etapě' : 'sprintu'} se <b>změní kontext</b> a odhalí se skrytý faktor – pak můžeš přeskládat mix. Některá rozhodnutí se <b>vrátí později</b>.</li>` : ''}
+        ${isHard() ? `<li class="hard-rule">🔥 <b>Náročná úroveň:</b> rozpočet režie jen ${budget()} bodů, ukazatele začínají na ${HARD.startMetric} a projekt končí už při poklesu na ${HARD.failAt}. Po ${gateAfter()}. ${per().gen === 'etapy' ? 'etapě' : 'sprintu'} se <b>změní kontext</b> a odhalí se skrytý faktor – pak můžeš přeskládat mix. Některá rozhodnutí se <b>vrátí později</b>.</li>` : ''}
       </ul>
       <button class="btn primary" data-action="toPlan">Na plánování 1. ${per().gen} ▶</button>
     </div>`;

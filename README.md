@@ -31,7 +31,7 @@ Proto hra obsahuje i čistě prediktivní a čistě agilní projekty.
 | ⚡ Odstávka elektrárny | prediktivní | **plánování po vlnách a Gantt** se závislostmi, kapacitou a rezervou |
 | 🚀 Startup Zachraň jídlo | agilní | nejistý trh, **objevování hodnoty a experimenty** |
 
-**🔥 Úroveň Hard** (odemkne se po dosažení 70 bodů v kterémkoli projektu Normal; pro učitele
+**🔥 Náročná úroveň** (odemkne se po dosažení 70 bodů v kterémkoli projektu základní úrovně; pro učitele
 a testování lze odemknout adresou s parametrem `?hard`, např. `…/hybridni-projekt/?hard`):
 
 | Scénář | Typ | Co je na něm těžké |
@@ -41,7 +41,7 @@ a testování lze odemknout adresou s parametrem `?hard`, např. `…/hybridni-p
 | 🎮 Videohra v early accessu | agilní | peníze ubývají každý sprint, extrémně nejisté hodnoty, trh se otočí |
 | 🌉 Výměna železničního mostu | prediktivní | pevné výluky (nedodělky se přesouvají), tři profese, inspekční dny, optimistické odhady |
 
-Společné mechaniky Hardu:
+Společné mechaniky náročné úrovně:
 - **méně zdrojů** – rozpočet režie 6 bodů, ukazatele startují na 40, projekt končí už při 10;
 - **skrytý faktor kontextu** – jeden štítek kontextu je skrytý a odhalí se uprostřed projektu;
 - **změna kontextu** – po kontrolním bodu se změní podmínky a hráč může **přeskládat mix**
@@ -119,13 +119,13 @@ python3 -m http.server 8765
   - agilní: `approachText`, `targetValue`, položky s `value` (odhad) a `actual` (skutečnost),
     `reveals` + `discoveries` pro nové podněty, milníky `traction` s `target`, vlastní `gate`;
   - volitelně `baseCapacity` (kapacita týmu za období).
-  - Hard: `level: 'hard'`, `hiddenContext`, `gateAfter`, `shift` (změna kontextu: `text`, `needs` –
+  - náročná úroveň: `level: 'hard'`, `hiddenContext`, `gateAfter`, `shift` (změna kontextu: `text`, `needs` –
     praktiky, které adaptaci splní, `penalty`, volitelně `devalue`, `addItems`, `capacityLoss`,
     `delayIfNot`) a `followups` (navazující události, na které odkazuje volba
-    `later: { after, event }`, s `unresolved` pro dozvuky po projektu). Agilní Hard umí `burn`
-    a `revenueDiv` (odpočet peněz a tržby), `experimentsPerSprint`. Prediktivní Hard umí etapy
+    `later: { after, event }`, s `unresolved` pro dozvuky po projektu). Agilní náročný projekt umí `burn`
+    a `revenueDiv` (odpočet peněz a tržby), `experimentsPerSprint`. Prediktivní náročný projekt umí etapy
     jako výluky (`window: true`), více profesí (`crew: { obecne, svarec, jerab }`, `skill` u úkolu),
-    inspekční dny (`holdDay`) a hrubé odhady (`rough`). Hybridní Hard umí milníky `integration`
+    inspekční dny (`holdDay`) a hrubé odhady (`rough`). Hybridní náročný projekt umí milníky `integration`
     (`requires`) a fatální start (`launch` s `fatal: true`).
 
 Každá volba má `rating` (`best` / `ok` / `bad`), `effects` na ukazatele a volitelně
