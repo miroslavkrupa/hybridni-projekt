@@ -8,6 +8,12 @@ const START_METRIC = 50;
 const OVERHEAD_BUDGET = 8;
 const MILESTONE_THRESHOLD = 45;
 const MIX_INSIGHT_MAX = 80;
+// Úroveň Hard: menší rozpočet režie, nižší start ukazatelů, dřívější konec projektu.
+const HARD = { budget: 6, startMetric: 40, failAt: 10 };
+const HARD_UNLOCK_SCORE = 70;
+// Změna kontextu: kolik praktik lze přidat a co každá stojí.
+const MAX_SHIFT_ADDS = 2;
+const SHIFT_ADD_COST = { rozpocet: -3, moralka: -2 };
 // Každá hra vylosuje nejvýš tolik obecných událostí, zbytek do SPRINTS doplní události scénáře.
 const GENERIC_EVENTS_PER_GAME = 3;
 // S praktikou Hypotézy a experimenty lze za sprint levně ověřit hodnotu tolika položek.
@@ -115,7 +121,7 @@ function startScenario(id) {
     screen: 'brief',
     sc,
     targetValue: sc.targetValue ?? (sum((sc.backlog || []).filter(b => b.moscow === 'M' || b.moscow === 'S'), b => b.value) || 1),
-    metrics: Object.fromEntries(METRICS.map(m => [m.id, START_METRIC])),
+    metrics: Object.fromEntries(METRICS.map(m => [m.id, sc.level === 'hard' ? HARD.startMetric : START_METRIC])),
     insight: 0,
     insightMax: 0,
     lessons: [],
@@ -140,6 +146,16 @@ function startScenario(id) {
     phaseDelay: 0,
     phaseResults: [],
     overrunTotal: 0,
+    carryIn: [],
+    hiddenRevealed: false,
+    shiftDone: false,
+    shiftAdapted: null,
+    shiftCapacity: 0,
+    reshape: null,
+    shiftResult: null,
+    echoes: { good: 0, bad: 0 },
+    aftermath: [],
+    aftermathApplied: false,
     capacityMod: 0,
     events,
     gate: prepDecision(sc.gate || GATE_EVENT, sc.terms),
@@ -157,6 +173,17 @@ function startScenario(id) {
 // ---------- Typ projektu ----------
 
 const AP = () => S.sc.approach;
+const isHard = () => S.sc.level === 'hard';
+const budget = () => (isHard() ? HARD.budget : OVERHEAD_BUDGET);
+const failAt = () => (isHard() ? HARD.failAt : 0);
+const expPerSprint = () => S.sc.experimentsPerSprint ?? EXPERIMENTS_PER_SPRINT;
+// Kontext, který hráč zná: skrytý faktor se přidá až po změně kontextu.
+const visibleContext = () => (S.hiddenRevealed && S.sc.hiddenContext ? [...S.sc.context, S.sc.hiddenContext] : S.sc.context);
+
+function hardUnlocked() {
+  if (/[?&]hard\b/.test(location.search)) return true;
+  return SCENARIOS.some(sc => sc.level !== 'hard' && getRecord(sc.id) >= HARD_UNLOCK_SCORE);
+}
 const per = () => PERIODS[APPROACHES[AP()].period];
 
 // ---------- Praktiky a vzorce ----------
@@ -170,7 +197,8 @@ const isMisfit = p => !isTrap(p) && p.useIn && !p.useIn.includes(AP());
 const hasPlanning = () => chosenPractices().some(p => p.planning);
 
 function patternCtx() {
-  return { has, approach: AP(), cost: S.mixCost, budget: OVERHEAD_BUDGET, overloads: S.overloads };
+  return { has, approach: AP(), cost: S.mixCost, budget: budget(), overloads: S.overloads,
+    adapted: S.shiftAdapted, goodEchoes: S.echoes.good, badEchoes: S.echoes.bad };
 }
 
 const isFound = id => S.found.some(f => f.id === id);
@@ -192,7 +220,7 @@ function revealPatterns(trigger) {
 }
 
 function practiceCapacity() {
-  return sum(chosenPractices(), p => p.capacity || 0) - Math.max(0, S.mixCost - OVERHEAD_BUDGET);
+  return sum(chosenPractices(), p => p.capacity || 0) - Math.max(0, S.mixCost - budget());
 }
 
 function milestoneThreshold() {
@@ -241,10 +269,12 @@ function recordDecision(title, choice, lesson) {
 
 function checkFail() {
   const m = S.metrics;
-  if (m.rozpocet <= 0) S.failed = 'Rozpočet je vyčerpaný. Sponzor projekt zastavil.';
-  else if (m.spokojenost <= 0) S.failed = 'Řídicí výbor ztratil důvěru a odvolal tě z projektu.';
-  else if (m.moralka <= 0) S.failed = 'Tým se rozpadl – většina lidí odešla.';
-  else if (m.harmonogram <= 0) S.failed = 'Projekt se zpozdil natolik, že ho vedení zrušilo.';
+  const f = failAt();
+  if (S.failed) { /* projekt už skončil (např. zmeškaný start) */ }
+  else if (m.rozpocet <= f) S.failed = 'Rozpočet je vyčerpaný. Sponzor projekt zastavil.';
+  else if (m.spokojenost <= f) S.failed = 'Řídicí výbor ztratil důvěru a odvolal tě z projektu.';
+  else if (m.moralka <= f) S.failed = 'Tým se rozpadl – většina lidí odešla.';
+  else if (m.harmonogram <= f) S.failed = 'Projekt se zpozdil natolik, že ho vedení zrušilo.';
   if (S.failed) S.screen = 'end';
   return !!S.failed;
 }
@@ -253,7 +283,8 @@ const baseCapacity = () => S.sc.baseCapacity ?? BASE_CAPACITY;
 const moraleCapacity = () => Math.floor((S.metrics.moralka - 50) / 10);
 
 function capacity() {
-  return Math.max(3, baseCapacity() + moraleCapacity() + practiceCapacity() + S.capacityMod);
+  // Kapacita nesmí klesnout pod největší položky backlogu (5 SP), jinak by nešly nikdy dokončit.
+  return Math.max(5, baseCapacity() + moraleCapacity() + practiceCapacity() + S.capacityMod + S.shiftCapacity);
 }
 
 // Skutečná hodnota položky (v agilním scénáři se liší od odhadu).
@@ -295,6 +326,7 @@ function applyOngoing() {
       label: isFound(p.id) ? `${p.icon} ${p.name}` : '❓ neodhalený vliv', e: p.perSprint,
     })),
   ];
+  if (S.shiftAdapted === false) sources.push({ label: '🧱 Strnulá metodika', e: S.sc.shift.penalty });
   if (!sources.length) return null;
   return { labels: sources.map(x => x.label), deltas: applyEffects(addEffects(...sources.map(x => x.e))) };
 }
@@ -337,6 +369,11 @@ function runSprint() {
     const tail = AP() === 'pred' ? '' : feedback ? ' Přírůstek si vyzkoušeli na review.' : ' Bez review ji ale uživatelé skoro nevidí.';
     notes.unshift(`Dodaná hodnota: +${value}.${tail}`);
   }
+  if (S.sc.burn) {
+    const revenue = Math.round(value / (S.sc.revenueDiv || 5));
+    effects.rozpocet = (effects.rozpocet || 0) - S.sc.burn + revenue;
+    notes.push(`💸 Provoz týmu stál ${S.sc.burn}, tržby z nové verze přinesly ${revenue}.`);
+  }
   const deltas = applyEffects(effects);
 
   // Dodané funkce mohou odhalit nové podněty od uživatelů.
@@ -361,6 +398,12 @@ function checkMilestone() {
     ok = missing.length === 0;
     text = ok ? ms.okText : `${ms.lateText} ${missing.map(b => b.name).join(', ')}.`;
     if (!ok) effects = { spokojenost: -4 * missing.length };
+    if (!ok && ms.fatal) S.failed = ms.failText;
+  } else if (ms.kind === 'integration') {
+    const missing = ms.requires.filter(id => !S.backlog.find(b => b.id === id)?.done);
+    ok = !missing.length;
+    text = ok ? ms.okText : `${ms.lateText} Chybí: ${missing.map(id => S.backlog.find(b => b.id === id)?.name || id).join(', ')}.`;
+    if (!ok) effects = { kvalita: -8, spokojenost: -6 };
   } else if (ms.kind === 'traction') {
     ok = S.valueDelivered >= ms.target;
     text = `${ok ? ms.okText : ms.lateText} (Skutečná hodnota pro uživatele: ${S.valueDelivered}, cíl ${ms.target}.)`;
@@ -387,12 +430,12 @@ const MIX_LESSON = {
 function evaluateMix() {
   S.mixCost = currentMixCost();
   const chosen = chosenPractices();
-  const fits = chosen.flatMap(p => (p.fits || []).filter(t => S.sc.context.includes(t)).map(t => ({ p, t })));
+  const fits = chosen.flatMap(p => (p.fits || []).filter(t => visibleContext().includes(t)).map(t => ({ p, t })));
   const deltas = applyEffects(addEffects(...chosen.map(p => p.effects), ...fits.map(() => CONTEXT_FIT_EFFECTS)));
   const essentials = ESSENTIALS[AP()].map(e => ({ ...e, ok: e.any.some(has) }));
   const traps = chosen.filter(isTrap);
   const misfits = chosen.filter(isMisfit);
-  const costOk = S.mixCost >= 4 && S.mixCost <= OVERHEAD_BUDGET + 1;
+  const costOk = S.mixCost >= Math.min(4, budget() - 2) && S.mixCost <= budget() + 1;
   if (AP() === 'pred') S.buffer = S.initialBuffer = (S.sc.buffer || 0) + sum(chosen, p => p.bufferBonus || 0);
 
   // Mix je klíčové rozhodnutí hry, proto váží víc než jednotlivá událost.
@@ -418,49 +461,68 @@ const periods = () => (S.sc.phases ? S.sc.phases.length : SPRINTS);
 const gateAfter = () => S.sc.gateAfter ?? 4;
 const phase = () => S.sc.phases[S.sprint - 1];
 const taskMD = t => t.days * t.people;
+const taskSkill = t => t.skill || 'lide';
 const phaseMD = ph => sum(ph.tasks, taskMD);
 const taskEnd = (start, t) => start + t.days - 1;
 const byTaskId = tasks => Object.fromEntries(tasks.map(t => [t.id, t]));
+// Úkoly aktuální etapy včetně práce přesunuté z minulé výluky.
+const phaseTasks = () => [...S.carryIn, ...phase().tasks];
 const GANTT_EXTRA_DAYS = 5;
 const GANTT_LESSON = 'Dobrý Gantt má správné závislosti, respektuje kapacitu lidí a vejde se do délky etapy – ideálně s malou vůlí na neočekávané.';
 
 function initGantt() {
-  const tasks = phase().tasks;
+  const tasks = phaseTasks();
   S.gantt = {
     starts: Object.fromEntries(tasks.map(t => [t.id, 1])),
     deps: Object.fromEntries(tasks.map(t => [t.id, []])),
   };
-  S.phaseDelay = 0;
+  // Neupravená metodika po změně kontextu (Hard) zdržuje každou etapu.
+  S.phaseDelay = S.shiftAdapted === false ? (S.sc.shift.delayIfNot || 0) : 0;
 }
 
-// Lidé v týmu na den: základ etapy upravený morálkou, mixem praktik a událostmi.
-function crewSize() {
-  const base = phase().crew;
-  return Math.max(base - 2, base + Math.trunc((practiceCapacity() + moraleCapacity() + S.capacityMod) / 2));
+// Lidé každé profese na den: základ etapy upravený morálkou, mixem praktik a událostmi.
+function crews() {
+  const ph = phase();
+  const base = typeof ph.crew === 'number' ? { lide: ph.crew } : ph.crew;
+  const mod = Math.trunc((practiceCapacity() + moraleCapacity() + S.capacityMod + S.shiftCapacity) / 2);
+  // Každá profese má vždy aspoň tolik lidí, kolik potřebuje její největší úkol – jinak by úkol nikdy nezačal.
+  const need = k => Math.max(1, ...phaseTasks().filter(t => taskSkill(t) === k).map(t => t.people));
+  return Object.fromEntries(Object.entries(base).map(([k, n]) => [k, Math.max(need(k), n - 2, n + mod)]));
 }
 
-// Kolik lidí je potřeba v jednotlivých dnech; extra = dny navíc u úkolu (opravy).
-function usage(tasks, startOf, extra = {}) {
+// Kolik lidí (dané profese) je potřeba v jednotlivých dnech; extra = dny navíc u úkolu (opravy).
+function usage(tasks, startOf, extra = {}, skill = null) {
   const out = [];
   for (const t of tasks) {
+    if (skill && taskSkill(t) !== skill) continue;
     const s = startOf(t);
     for (let d = s; d < s + t.days + (extra[t.id] || 0); d++) out[d] = (out[d] || 0) + t.people;
   }
   return out;
 }
 
+// Počet dní, kdy některá profese nestačí.
+function overloadDays(tasks, startOf, crew) {
+  const days = new Set();
+  for (const k of Object.keys(crew)) usage(tasks, startOf, {}, k).forEach((u, d) => { if (u > crew[k]) days.add(d); });
+  return days.size;
+}
+
 // Úkoly, které začínají dřív, než skončí některý jejich předchůdce.
 function depConflicts(tasks, starts, depsOf) {
   const byId = byTaskId(tasks);
-  return tasks.filter(t => depsOf(t).some(d => starts[t.id] <= taskEnd(starts[d], byId[d])));
+  return tasks.filter(t => depsOf(t).some(d => byId[d] && starts[t.id] <= taskEnd(starts[d], byId[d])));
 }
 
-// Nejdřívější začátky podle vyznačených závislostí (dopředný průchod, bez ohledu na kapacitu).
+// Úkoly naplánované dřív, než přijede inspektor nebo zkušebna.
+const holdConflicts = (tasks, starts) => tasks.filter(t => t.holdDay && starts[t.id] < t.holdDay);
+
+// Nejdřívější začátky podle vyznačených závislostí a inspekčních dnů (bez ohledu na kapacitu).
 function earliestStarts(tasks, deps) {
   const byId = byTaskId(tasks);
   const es = Object.fromEntries(tasks.map(t => [t.id, 1]));
   for (let i = 0; i <= tasks.length; i++) {
-    for (const t of tasks) es[t.id] = Math.max(1, ...deps[t.id].map(d => es[d] + byId[d].days));
+    for (const t of tasks) es[t.id] = Math.max(1, t.holdDay || 1, ...deps[t.id].filter(d => byId[d]).map(d => es[d] + byId[d].days));
   }
   return es;
 }
@@ -483,43 +545,43 @@ function criticalInfo(tasks, deps) {
 
 // Posouzení plánu: vůči vyznačeným (viditelné) i skutečným závislostem (skryté do konce etapy).
 function evaluateGantt() {
-  const tasks = phase().tasks;
+  const tasks = phaseTasks();
   const g = S.gantt;
-  const crew = crewSize();
-  const use = usage(tasks, t => g.starts[t.id]);
+  const crew = crews();
   return {
     crew,
     finish: Math.max(...tasks.map(t => taskEnd(g.starts[t.id], t))),
     declaredConflicts: depConflicts(tasks, g.starts, t => g.deps[t.id]),
     trueConflicts: depConflicts(tasks, g.starts, t => t.deps),
+    holdConflicts: holdConflicts(tasks, g.starts),
     missed: tasks.flatMap(t => t.deps.filter(d => !g.deps[t.id].includes(d)).map(d => [d, t.id])),
     extra: tasks.flatMap(t => g.deps[t.id].filter(d => !t.deps.includes(d)).map(d => [d, t.id])),
-    overDays: use.filter(u => u > crew).length,
+    overDays: overloadDays(tasks, t => g.starts[t.id], crew),
   };
 }
 
 // Přehraje etapu den po dni podle skutečných závislostí a skutečné velikosti týmu:
-// úkol začne nejdřív v plánovaný den, až skončí jeho předchůdci a jsou volní lidé.
-// Konflikt se skutečnou závislostí v plánu = přerušení a den práce navíc. Události přidají zpoždění.
+// úkol začne nejdřív v plánovaný den (a ne před inspekcí), až skončí jeho předchůdci
+// a jsou volní lidé dané profese. Konflikt se skutečnou závislostí = přerušení a den navíc.
 function simulatePhase() {
-  const tasks = phase().tasks;
   const run = S.phaseRun;
+  const tasks = run.tasks;
   const crew = run.plan.crew;
   const conflictIds = new Set(run.plan.trueConflicts.map(t => t.id));
   const actual = {};
-  const use = [];
+  const use = Object.fromEntries(Object.keys(crew).map(k => [k, []]));
   const pending = tasks.slice().sort((a, b) => run.starts[a.id] - run.starts[b.id] || a.id.localeCompare(b.id));
   for (let day = 1; pending.length && day < 200; day++) {
     for (const t of pending.slice()) {
-      if (day < run.starts[t.id] || !t.deps.every(d => actual[d] && actual[d].end < day)) continue;
+      if (day < run.starts[t.id] || day < (t.holdDay || 1)) continue;
+      if (!t.deps.every(d => actual[d] && actual[d].end < day)) continue;
       const len = t.days + (conflictIds.has(t.id) ? 1 : 0);
-      if (Array.from({ length: len }, (_, i) => (use[day + i] || 0) + t.people > crew).some(Boolean)) continue;
-      for (let i = 0; i < len; i++) use[day + i] = (use[day + i] || 0) + t.people;
-      const predReady = Math.max(1, ...t.deps.map(d => actual[d].end + 1));
-      actual[t.id] = {
-        start: day, end: day + len - 1, rework: len > t.days,
-        waitedForPeople: day > Math.max(run.starts[t.id], predReady) ? day - Math.max(run.starts[t.id], predReady) : 0,
-      };
+      const u = use[taskSkill(t)] || (use[taskSkill(t)] = []);
+      const cap = Math.max(crew[taskSkill(t)] ?? 0, t.people);
+      if (Array.from({ length: len }, (_, i) => (u[day + i] || 0) + t.people > cap).some(Boolean)) continue;
+      for (let i = 0; i < len; i++) u[day + i] = (u[day + i] || 0) + t.people;
+      const ready = Math.max(run.starts[t.id], t.holdDay || 1, ...t.deps.map(d => actual[d].end + 1));
+      actual[t.id] = { start: day, end: day + len - 1, rework: len > t.days, waitedForPeople: Math.max(0, day - ready) };
       pending.splice(pending.indexOf(t), 1);
     }
   }
@@ -536,32 +598,127 @@ function simulatePhase() {
 
 function finalizePhase() {
   const ph = phase();
+  const tasks = S.phaseRun.tasks;
   const sim = simulatePhase();
-  const overrun = Math.max(0, sim.finish - ph.days);
+  // Výluka: co se do okna nevejde, přesune se do další výluky (rezerva projektu se čerpá až v poslední).
+  const windowed = ph.window && S.sprint < periods();
+  let overrun = Math.max(0, sim.finish - ph.days);
+  let carry = [];
+  let base;
   const before = S.buffer;
-  S.buffer -= overrun;
-  S.overrunTotal += overrun;
+  if (windowed) {
+    const limit = ph.days - S.phaseDelay;
+    carry = tasks.filter(t => sim.actual[t.id].end > limit).map(t => {
+      const a = sim.actual[t.id];
+      return {
+        id: `${t.id}${S.sprint}`, name: t.carried ? t.name : `${t.name} – dokončení`, days: Math.max(1, a.end - Math.max(limit, a.start - 1)),
+        people: t.people, skill: t.skill, deps: [], carried: true, note: 'Nestihlo se v minulé výluce – dokončuje se teď.',
+      };
+    });
+    base = carry.length ? { spokojenost: -4 * carry.length, rozpocet: -3 * carry.length } : { spokojenost: 4, harmonogram: 2 };
+  } else {
+    S.buffer -= overrun;
+    S.overrunTotal += overrun;
+    base = overrun ? { spokojenost: -3 * overrun } : { spokojenost: 4, harmonogram: 2 };
+  }
   const beyond = Math.max(0, -S.buffer) - Math.max(0, -before);
   const deltas = applyEffects(addEffects(
-    overrun ? { spokojenost: -3 * overrun } : { spokojenost: 4, harmonogram: 2 },
+    base,
     beyond ? { harmonogram: -5 * beyond, rozpocet: -4 * beyond } : {},
     sim.rework.length ? { rozpocet: -sim.rework.length, moralka: -sim.rework.length } : {},
     sim.overDays ? { moralka: -Math.min(8, 2 * sim.overDays) } : {},
   ));
-  S.milestones[ph.id] = overrun ? 'late' : 'ok';
-  S.phaseResults[S.sprint - 1] = { finish: sim.finish, overrun };
+  const late = windowed ? carry.length > 0 : overrun > 0;
+  if (windowed && !carry.length) overrun = 0;
+  S.carryIn = carry;
+  S.overrunTotal += carry.length;
+  S.milestones[ph.id] = late ? 'late' : 'ok';
+  S.phaseResults[S.sprint - 1] = { finish: sim.finish, overrun, carried: carry.length };
   S.review = {
-    phase: ph, sim, plan: S.phaseRun.plan, starts: S.phaseRun.starts, deps: S.phaseRun.deps,
-    overrun, beyond, buffer: S.buffer, deltas,
-    plannedMD: phaseMD(ph), actualMD: phaseMD(ph) + sum(sim.rework, t => t.people),
+    phase: ph, tasks, sim, plan: S.phaseRun.plan, starts: S.phaseRun.starts, deps: S.phaseRun.deps,
+    overrun, beyond, buffer: S.buffer, deltas, carry, windowed, late,
+    plannedMD: sum(tasks, taskMD), actualMD: sum(tasks, taskMD) + sum(sim.rework, t => t.people),
     ongoing: applyOngoing(), reveals: [],
   };
+}
+
+// ---------- Úroveň Hard: změna kontextu a opožděné následky ----------
+
+// Změna kontextu: odhalí skrytý faktor, upraví backlog a otevře přeskládání mixu.
+function applyShift() {
+  const sh = S.sc.shift;
+  S.hiddenRevealed = true;
+  const devalued = [];
+  if (sh.devalue) {
+    for (const b of S.backlog) {
+      if (b.done || b.category !== sh.devalue.category) continue;
+      b.actual = sh.devalue.actual;
+      S.verified = S.verified.filter(id => id !== b.id);
+      devalued.push(b);
+    }
+  }
+  const added = addItems(sh.addItems);
+  S.shiftCapacity = -(sh.capacityLoss || 0);
+  S.reshape = { original: S.mix.slice(), mix: S.mix.slice(), devalued, added };
+  S.shiftResult = null;
+}
+
+const reshapeAdds = () => S.reshape.mix.filter(id => !S.reshape.original.includes(id));
+
+function confirmReshape() {
+  const sh = S.sc.shift;
+  const adds = reshapeAdds();
+  const removed = S.reshape.original.filter(id => !S.reshape.mix.includes(id));
+  S.mix = S.reshape.mix.slice();
+  S.mixCost = currentMixCost();
+  const costDeltas = applyEffects(addEffects(...adds.map(() => SHIFT_ADD_COST)));
+  const adapted = sh.needs.some(has);
+  S.shiftAdapted = adapted;
+  // Praktiky, které sedí na dosud skrytý faktor, se teď vyplatí.
+  const hiddenFits = chosenPractices().filter(p => (p.fits || []).includes(S.sc.hiddenContext));
+  const fitDeltas = applyEffects(addEffects(...hiddenFits.map(() => CONTEXT_FIT_EFFECTS)));
+  const newBad = adds.map(practiceById).filter(p => isTrap(p) || isMisfit(p));
+  const rating = adapted && !newBad.length && S.mixCost <= budget() + 1 ? 'best' : adapted ? 'ok' : 'bad';
+  const icons = ids => ids.map(id => practiceById(id).icon).join(' ') || '–';
+  recordDecision(`Změna kontextu: ${sh.title}`,
+    { rating, text: adds.length || removed.length ? `přidáno ${icons(adds)}, odebráno ${icons(removed)}` : 'mix beze změny' }, sh.lesson);
+  // Reakce na změnu kontextu je klíčová lekce Hardu – v úsudku váží dvojnásob.
+  S.insight += RATING_POINTS[rating];
+  S.insightMax += RATING_POINTS.best;
+  S.shiftDone = true;
+  S.shiftResult = { adapted, adds, removed, newBad, hiddenFits, deltas: addEffects(costDeltas, fitDeltas), reveals: revealPatterns('shift') };
+}
+
+// Opožděný následek: navazující událost se vloží o několik období později.
+// Když se do projektu nevejde, dopadne na projekt až po jeho konci.
+function scheduleFollowup(choice, ev) {
+  const fu = (S.sc.followups || {})[choice.later.event];
+  if (!fu) return null;
+  const meta = { echo: true, good: choice.rating === 'best', fromTitle: ev.title, fromChoice: choice.text, fromSprint: S.sprint };
+  let idx = S.sprint - 1 + choice.later.after;
+  while (idx < periods() && S.events[idx] && S.events[idx].echo) idx++;
+  if (idx < periods()) {
+    S.events[idx] = { ...prepDecision(fu, S.sc.terms), ...meta };
+    return idx + 1;
+  }
+  S.aftermath.push({ ...meta, title: fu.title, text: fu.unresolvedText || fu.text, effects: fu.unresolved || {} });
+  return null;
+}
+
+function applyAftermath() {
+  if (S.aftermathApplied) return;
+  S.aftermathApplied = true;
+  for (const a of S.aftermath) a.deltas = applyEffects(a.effects);
 }
 
 // ---------- Akce ----------
 
 const ACTIONS = {
-  pickScenario({ id }) { startScenario(id); },
+  pickScenario({ id }) {
+    const sc = SCENARIOS.find(x => x.id === id);
+    if (sc.level === 'hard' && !hardUnlocked()) return;
+    startScenario(id);
+  },
 
   start() { S.screen = 'sort'; },
 
@@ -615,7 +772,7 @@ const ACTIONS = {
 
   experiment({ id }) {
     const it = S.backlog.find(b => b.id === id);
-    if (!has('lean') || !it || valueKnown(it) || S.experiments >= EXPERIMENTS_PER_SPRINT) return;
+    if (!has('lean') || !it || valueKnown(it) || S.experiments >= expPerSprint()) return;
     S.experiments++;
     S.verified.push(id);
   },
@@ -630,18 +787,20 @@ const ACTIONS = {
   ganttAuto() {
     if (!hasPlanning()) return;
     const ph = phase();
-    const es = earliestStarts(ph.tasks, S.gantt.deps);
-    for (const t of ph.tasks) S.gantt.starts[t.id] = Math.min(es[t.id], ph.days + GANTT_EXTRA_DAYS - t.days + 1);
+    const tasks = phaseTasks();
+    const es = earliestStarts(tasks, S.gantt.deps);
+    for (const t of tasks) S.gantt.starts[t.id] = Math.min(es[t.id], ph.days + GANTT_EXTRA_DAYS - t.days + 1);
   },
 
   startPhase() {
     const ev = evaluateGantt();
     const ph = phase();
-    const rating = !ev.trueConflicts.length && !ev.overDays && !ev.missed.length && ev.finish <= ph.days ? 'best'
-      : ev.trueConflicts.length <= 1 && ev.overDays <= 1 && ev.finish <= ph.days + 1 ? 'ok' : 'bad';
+    const conflicts = ev.trueConflicts.length + ev.holdConflicts.length;
+    const rating = !conflicts && !ev.overDays && !ev.missed.length && ev.finish <= ph.days ? 'best'
+      : conflicts <= 1 && ev.overDays <= 1 && ev.finish <= ph.days + 1 ? 'ok' : 'bad';
     recordDecision(`Gantt etapy ${S.sprint}: ${ph.name}`,
-      { rating, text: `plán do dne ${ev.finish} z ${ph.days}, konflikty ${ev.trueConflicts.length}, přetížení ${days(ev.overDays)}` }, GANTT_LESSON);
-    S.phaseRun = { plan: ev, starts: { ...S.gantt.starts }, deps: JSON.parse(JSON.stringify(S.gantt.deps)) };
+      { rating, text: `plán do dne ${ev.finish} z ${ph.days}, konflikty ${conflicts}, přetížení ${days(ev.overDays)}` }, GANTT_LESSON);
+    S.phaseRun = { plan: ev, tasks: phaseTasks(), starts: { ...S.gantt.starts }, deps: JSON.parse(JSON.stringify(S.gantt.deps)) };
     S.current = { event: S.events[S.sprint - 1], result: null, isGate: false };
     S.screen = 'event';
   },
@@ -673,17 +832,25 @@ const ACTIONS = {
     }
     for (const id of choice.verify || []) if (!S.verified.includes(id)) S.verified.push(id);
     recordDecision(ev.title, choice, ev.lesson);
+    if (choice.later) scheduleFollowup(choice, ev);
+    if (ev.echo) S.echoes[ev.good ? 'good' : 'bad']++;
     const reveals = [
+      ...(ev.echo ? revealPatterns(ev.good ? 'echo-good' : 'echo-bad') : []),
       ...(soft.by.some(p => p.id === 'risk') ? revealPatterns('soften') : []),
       ...(S.current.isGate ? revealPatterns('gate') : []),
     ];
-    S.current.result = { i: +i, deltas, softenedBy: soft.by, added, delay, reveals };
+    S.current.result = { i: +i, deltas, softenedBy: soft.by, added, delay, later: !!choice.later, reveals };
   },
 
   eventNext() {
     if (checkFail()) return;
     if (S.current.isGate) {
       S.gateDone = true;
+      if (S.sc.shift && !S.shiftDone) {
+        applyShift();
+        S.screen = 'shift';
+        return;
+      }
       nextSprint();
       return;
     }
@@ -704,12 +871,29 @@ const ACTIONS = {
 
   reviewNext() {
     if (checkFail()) return;
-    if (S.sprint >= periods()) { S.screen = 'end'; return; }
+    if (S.sprint >= periods()) { applyAftermath(); S.screen = 'end'; return; }
     if (S.sprint === gateAfter() && !S.gateDone) {
       S.current = { event: S.gate, result: null, isGate: true };
       S.screen = 'event';
       return;
     }
+    nextSprint();
+  },
+
+  reshapeToggle({ id }) {
+    if (S.shiftResult) return;
+    const r = S.reshape;
+    if (r.mix.includes(id)) r.mix = r.mix.filter(x => x !== id);
+    else if (r.original.includes(id) || reshapeAdds().length < MAX_SHIFT_ADDS) r.mix = [...r.mix, id];
+  },
+
+  confirmShift() {
+    if (S.shiftResult) return;
+    confirmReshape();
+  },
+
+  shiftNext() {
+    if (checkFail()) return;
     nextSprint();
   },
 
@@ -748,7 +932,7 @@ document.addEventListener('keydown', e => {
 // ---------- Vykreslování ----------
 
 function render() {
-  const screens = { intro, brief, sort, toolbox, kickoff, end, event,
+  const screens = { intro, brief, sort, toolbox, kickoff, end, event, shift,
     plan: () => (isPhased() ? ganttPlan() : plan()),
     review: () => (isPhased() ? phaseReview() : review()) };
   const showHud = !['intro', 'brief', 'end'].includes(S.screen);
@@ -796,7 +980,9 @@ function deltaChips(deltas) {
 }
 
 function contextChips() {
-  return S.sc.context.map(t => `<span class="ctx">${CONTEXT_TAGS[t].icon} ${CONTEXT_TAGS[t].label}</span>`).join('');
+  const chips = visibleContext().map(t => `<span class="ctx ${t === S.sc.hiddenContext ? 'revealed' : ''}">${CONTEXT_TAGS[t].icon} ${CONTEXT_TAGS[t].label}</span>`);
+  if (S.sc.hiddenContext && !S.hiddenRevealed) chips.push('<span class="ctx hidden-ctx" title="Odhalí se během projektu">❓ Skrytý faktor</span>');
+  return chips.join('');
 }
 
 const approachChip = () => `<span class="ctx approach ${AP()}">${APPROACHES[AP()].icon} ${APPROACHES[AP()].label}</span>`;
@@ -852,16 +1038,20 @@ function timeline() {
 
 function intro() {
   const atlas = getAtlas();
-  const cards = SCENARIOS.map(sc => {
+  const unlocked = hardUnlocked();
+  const card = sc => {
     const rec = getRecord(sc.id);
+    const locked = sc.level === 'hard' && !unlocked;
     return `
-      <button class="scenario card" data-action="pickScenario" data-id="${sc.id}">
-        <span class="sc-icon">${sc.icon}</span>
+      <button class="scenario card ${sc.level === 'hard' ? 'hard' : ''} ${locked ? 'locked' : ''}" data-action="pickScenario" data-id="${sc.id}" ${locked ? 'disabled' : ''}>
+        <span class="sc-icon">${locked ? '🔒' : sc.icon}</span>
         <b>${sc.name}</b>
         <span class="sc-tag">${sc.tagline}</span>
-        <span class="sc-rec">${rec ? `🏅 Tvůj rekord: ${rec} bodů` : 'Zatím nehráno'}</span>
+        <span class="sc-rec">${locked ? 'Zamčeno' : rec ? `🏅 Tvůj rekord: ${rec} bodů` : 'Zatím nehráno'}</span>
       </button>`;
-  }).join('');
+  };
+  const normal = SCENARIOS.filter(sc => sc.level !== 'hard').map(card).join('');
+  const hard = SCENARIOS.filter(sc => sc.level === 'hard').map(card).join('');
   return `
     <div class="hero card">
       <img class="hero-art" src="img/alchymie.svg" alt="Projektový manažer jako alchymista vaří v kotli projektovou metodiku" width="600" height="420">
@@ -880,7 +1070,13 @@ function intro() {
       <button class="btn" data-action="atlas">🗺️ Atlas vzorců: ${atlas.length} / ${PATTERNS.length} objeveno</button>
     </div>
     <h2 class="pick-title">Vyber si projekt</h2>
-    <div class="scenario-grid">${cards}</div>`;
+    <h3 class="level-title">Úroveň Normal</h3>
+    <div class="scenario-grid">${normal}</div>
+    <h3 class="level-title hard">🔥 Úroveň Hard</h3>
+    <p class="hint level-hint">${unlocked
+      ? 'Méně zdrojů, skrytý faktor, změna kontextu uprostřed projektu a rozhodnutí, která se vrací. Projekt končí už při poklesu ukazatele na 10.'
+      : `Odemkne se, až v kterémkoli projektu úrovně Normal dosáhneš alespoň ${HARD_UNLOCK_SCORE} bodů.`}</p>
+    <div class="scenario-grid">${hard}</div>`;
 }
 
 function brief() {
@@ -889,6 +1085,7 @@ function brief() {
     <div class="hero card">
       <div class="hero-emoji">${sc.icon}</div>
       <h1>${sc.name}</h1>
+      ${sc.level === 'hard' ? '<p class="hard-badge">🔥 Úroveň Hard</p>' : ''}
       <p class="lead">${sc.intro}</p>
       <p><b>Co projekt zahrnuje:</b> ${sc.scope}</p>
       <p><b>Kontext projektu:</b></p>
@@ -951,7 +1148,7 @@ function sort() {
 
 function practiceCard(p) {
   const on = has(p.id);
-  const fit = (p.fits || []).some(t => S.sc.context.includes(t));
+  const fit = (p.fits || []).some(t => visibleContext().includes(t));
   const pairs = PRACTICE_PAIRS.filter(x => on && (x.a === p.id ? has(x.b) : x.b === p.id && has(x.a)));
   const revealed = !!S.mixResult;
   const trap = revealed && on && isTrap(p);
@@ -978,7 +1175,7 @@ function pairList(pairs) {
 function toolbox() {
   const r = S.mixResult;
   const cost = r ? S.mixCost : currentMixCost();
-  const over = cost - OVERHEAD_BUDGET;
+  const over = cost - budget();
   const columns = Object.keys(WORLD_LABEL).map(w => `
     <div class="pcol"><h3>${WORLD_LABEL[w]}</h3>
       ${PRACTICES.filter(p => p.world === w).map(practiceCard).join('')}
@@ -1008,8 +1205,8 @@ function toolbox() {
     <div class="mix-bar card">
       <div class="mix-cost">
         <span>Režie řízení</span>
-        <b class="${over > 0 ? 'over' : ''}">${cost} / ${OVERHEAD_BUDGET}</b>
-        <div class="bar cap ${over > 0 ? 'over' : ''}"><i style="width:${Math.min(100, cost / OVERHEAD_BUDGET * 100)}%"></i></div>
+        <b class="${over > 0 ? 'over' : ''}">${cost} / ${budget()}</b>
+        <div class="bar cap ${over > 0 ? 'over' : ''}"><i style="width:${Math.min(100, cost / budget() * 100)}%"></i></div>
         ${over > 0 ? `<small class="warn">kapacita týmu −${over} každé období</small>` : '<small>Každý bod nad rozpočet sníží kapacitu týmu.</small>'}
       </div>
       <div class="mix-pairs">${pairList(activePairs())}</div>
@@ -1017,7 +1214,7 @@ function toolbox() {
     </div>`;
   return `
     <div class="phase-title"><span class="phase">Fáze 2 / 3</span><h2>Slož mix praktik</h2>
-      <p>Vyber praktiky, kterými budeš projekt řídit. Každá stojí <b>režii řízení</b> (porady, reporty, schvalování) – rozpočet je ${OVERHEAD_BUDGET} bodů. Hledej kombinace, které se doplňují a sedí na tento typ projektu.</p>
+      <p>Vyber praktiky, kterými budeš projekt řídit. Každá stojí <b>režii řízení</b> (porady, reporty, schvalování) – rozpočet je ${budget()} bodů. Hledej kombinace, které se doplňují a sedí na tento typ projektu.</p>
       <div class="ctx-row"><b>Projekt:</b> ${approachChip()} ${contextChips()}</div>
     </div>
     <div class="pgrid">${columns}</div>
@@ -1045,6 +1242,7 @@ function choiceCard(item, result, pickAction) {
         <div class="chips">${deltaChips(result.deltas)}${c.capacityMod ? `<span class="chip down">${c.capacityMod} SP kapacita ${per().next}</span>` : ''}${c.dropScope ? `<span class="chip down">„${MOSCOW[c.dropScope].label}“ položky odstraněny</span>` : ''}${(result.added || []).map(a => `<span class="chip neutral">🆕 ${a.name}</span>`).join('')}${result.delay ? `<span class="chip down">⏱️ +${days(result.delay)} zpoždění etapy</span>` : ''}</div>
         ${result.softenedBy && result.softenedBy.length ? `<p class="softened">🛡️ Dopad zmírnila praktika: ${result.softenedBy.map(p => `${p.icon} ${p.name}`).join(', ')}</p>` : ''}
         ${c.rating !== 'best' ? `<p class="best-was">Nejlepší volba: <b>${best.text}</b>${best.needs && !has(best.needs) ? ' – ale tvůj mix praktik ji neumožnil.' : ''}</p>` : ''}
+        ${result.later ? '<p class="later">⏳ Tohle rozhodnutí bude mít dohru.</p>' : ''}
         <div class="lesson">💡 ${item.lesson}</div>
       </div>
       ${revealBlock(result.reveals)}`;
@@ -1055,6 +1253,7 @@ function choiceCard(item, result, pickAction) {
       <div class="decision-head"><span class="big-icon">${item.icon}</span><h3>${item.title}</h3>
         ${showTrack ? `<span class="tag ${item.track}">${TRACK_LABEL[item.track]}</span>` : ''}
       </div>
+      ${item.echo ? `<div class="echo">⏳ <b>Následek dřívějšího rozhodnutí</b> (${item.fromTitle}, ${per().nom.toLowerCase()} ${item.fromSprint}): „${item.fromChoice}“</div>` : ''}
       <p class="situation">${item.text}</p>
       <div class="choices">${choices}</div>
       ${fb}
@@ -1071,7 +1270,12 @@ function kickoffRules() {
       '<b>Skutečné závislosti</b> se ukážou až během etapy. Když úkol začne dřív, než skončí jeho předchůdce, práce se přeruší a den se dělá znovu. Přetížený tým etapu natáhne.',
       hasPlanning() ? 'Tvůj nástroj pro harmonogram umí úkoly jedním kliknutím <b>seřadit co nejdřív podle závislostí</b>.' : '⚠️ Bez praktiky pro harmonogram musíš všechno rozvrhnout ručně.',
       has('cpm') ? 'Analýza kritické cesty ukáže <b>kritické úkoly a vůli</b> ostatních.' : 'Bez analýzy kritické cesty nevidíš, které úkoly nesmí sklouznout.',
-      `Co se nevejde do délky etapy, ukrojí z <b>rezervy projektu (${days(S.buffer)})</b>. Když dojde, každý další den stojí 📅 i 💰.`,
+      ph.some(p => p.window)
+        ? `Etapy jsou <b>výluky</b>: co se ve výluce nestihne, přesune se do další a stojí to 😊 i 💰. Rezervu projektu (${days(S.buffer)}) čerpá jen poslední výluka.`
+        : `Co se nevejde do délky etapy, ukrojí z <b>rezervy projektu (${days(S.buffer)})</b>. Když dojde, každý další den stojí 📅 i 💰.`,
+      ...(ph.some(p => typeof p.crew === 'object') ? ['Tým má <b>několik profesí</b> (dělníci, svářeči, jeřáb) a každá má vlastní kapacitu – hlídej každou zvlášť.'] : []),
+      ...(ph.some(p => p.tasks.some(t => t.holdDay)) ? ['Některé úkoly smí začít až v den, kdy přijede <b>inspektor nebo zkušebna 🔍</b>.'] : []),
+      ...(ph.some(p => p.rough) ? ['Odhady budoucích etap <b>nahrubo bývají optimistické</b> – podrobný plán ukáže skutečnou pracnost.'] : []),
       'V každé etapě přijde <b>událost</b>; některé volby odemyká jen správná praktika. Po 2. etapě tě čeká <b>kontrolní den</b>.',
     ];
   }
@@ -1079,7 +1283,7 @@ function kickoffRules() {
     return [
       'Rozsah <b>není pevný</b>. Cílem je co nejvíc <b>skutečné hodnoty pro uživatele</b> – měří se trakce po 2., 4. a 6. sprintu.',
       'Na začátku sprintu vyber z backlogu položky do <b>kapacity týmu</b> (story pointy).',
-      `Hodnota u položek je jen <b>odhad (hypotéza)</b> – skutečnost ukáže až dodání${has('lean') ? `, nebo ji <b>ověříš experimentem 🧪</b> (až ${EXPERIMENTS_PER_SPRINT} za sprint)` : ''}.`,
+      `Hodnota u položek je jen <b>odhad (hypotéza)</b> – skutečnost ukáže až dodání${has('lean') ? `, nebo ji <b>ověříš experimentem 🧪</b> (až ${expPerSprint()} za sprint)` : ''}.`,
       'Dodané funkce mohou odhalit <b>nové podněty od uživatelů</b> – backlog se vyvíjí.',
       'Během každého sprintu přijde <b>událost</b>. V polovině projektu tě čeká <b>demo day</b> pro investory.',
     ];
@@ -1102,6 +1306,7 @@ function kickoff() {
       <ul class="rules">
         ${kickoffRules().map(r => `<li>${r}</li>`).join('')}
         <li>Tvůj mix praktik působí celou dobu – a postupně odhalíš, jaké <b>vzorce a antivzorce</b> v projektu vytvořil.</li>
+        ${isHard() ? `<li class="hard-rule">🔥 <b>Hard:</b> rozpočet režie jen ${budget()} bodů, ukazatele začínají na ${HARD.startMetric} a projekt končí už při poklesu na ${HARD.failAt}. Po ${gateAfter()}. ${per().gen === 'etapy' ? 'etapě' : 'sprintu'} se <b>změní kontext</b> a odhalí se skrytý faktor – pak můžeš přeskládat mix. Některá rozhodnutí se <b>vrátí později</b>.</li>` : ''}
       </ul>
       <button class="btn primary" data-action="toPlan">Na plánování 1. ${per().gen} ▶</button>
     </div>`;
@@ -1130,7 +1335,7 @@ function plan() {
   const over = used > cap;
   const order = { M: 0, S: 1, C: 2, W: 3 };
   const items = S.backlog.slice().sort((a, b) => (a.done - b.done) || (order[a.moscow] - order[b.moscow]));
-  const canExperiment = has('lean') && S.experiments < EXPERIMENTS_PER_SPRINT;
+  const canExperiment = has('lean') && S.experiments < expPerSprint();
   const rows = items.map(it => {
     const lock = itemLock(it);
     const sel = S.selected.includes(it.id);
@@ -1175,7 +1380,7 @@ function plan() {
         <div class="cap-num ${over ? 'over' : ''}"><b>${used}</b> / ${cap} SP</div>
         <div class="bar cap ${over ? 'over' : ''}"><i style="width:${pct}%"></i></div>
         ${over ? '<p class="warn">⚠️ Přetížení! Tým nestihne vše a morálka i kvalita utrpí.</p>' : ''}
-        ${has('lean') && AP() !== 'pred' ? `<p class="hint">🧪 Experimenty v tomto sprintu: ${S.experiments} / ${EXPERIMENTS_PER_SPRINT}</p>` : ''}
+        ${has('lean') && AP() !== 'pred' ? `<p class="hint">🧪 Experimenty v tomto sprintu: ${S.experiments} / ${expPerSprint()}</p>` : ''}
         <ul class="facts">
           <li>Kapacita: ${parts.map(([l, v], i) => `${l} ${i ? signed(v) : v}`).join(', ')}.</li>
           ${goal}
@@ -1190,7 +1395,7 @@ function event() {
   const gateTitle = AP() === 'agile' ? 'Investoři rozhodují' : AP() === 'pred' ? 'Kontrolní den' : 'Řídicí výbor zasedá';
   return `
     <div class="phase-title"><span class="phase">${c.isGate ? 'Kontrolní bod' : `${per().nom} ${S.sprint} z ${periods()} · probíhá`}</span>
-      <h2>${c.isGate ? gateTitle : `Uprostřed ${per().gen} se něco stalo…`}</h2></div>
+      <h2>${c.isGate ? gateTitle : c.event.echo ? 'Vrací se dřívější rozhodnutí…' : `Uprostřed ${per().gen} se něco stalo…`}</h2></div>
     ${choiceCard(c.event, c.result, 'eventPick')}
     ${c.result ? `<div class="actions"><button class="btn primary" data-action="eventNext">${c.isGate ? `Na plánování ${per().gen} ${S.sprint + 1} ▶` : `Na ${per().toReview} ▶`}</button></div>` : ''}
   `;
@@ -1246,7 +1451,9 @@ function review() {
 
 // ---------- Vykreslení: Gantt a etapy ----------
 
-const roughMD = ph => `~${Math.round(phaseMD(ph) / 5) * 5} MD`;
+const roughMD = ph => `~${Math.round((ph.rough ?? phaseMD(ph)) / 5) * 5} MD`;
+const skillLabel = k => (SKILLS[k] || SKILLS.lide);
+const crewText = crew => Object.entries(crew).map(([k, n]) => `${skillLabel(k).icon} ${n} ${skillLabel(k).label.toLowerCase()}`).join(' · ');
 
 function phaseTimeline() {
   const phases = S.sc.phases;
@@ -1260,7 +1467,7 @@ function phaseTimeline() {
     const n = i + 1;
     const res = S.phaseResults[i];
     const cls = n < S.sprint ? 'past' : n === S.sprint ? 'now' : 'future';
-    const detail = n < S.sprint && res ? `skutečně ${res.finish} z ${p.days} dní`
+    const detail = n < S.sprint && res ? (res.carried ? `nestihlo se ${res.carried} úkolů` : `skutečně ${res.finish} z ${p.days} dní`)
       : n === S.sprint ? `${p.days} dní · podrobný Gantt` : `${p.days} dní · nahrubo ${roughMD(p)}`;
     return `<div class="sprint-cell phase-cell ${cls}" title="${p.goal}">${n}. ${p.name}<small>${detail}</small></div>`;
   }).join('');
@@ -1273,10 +1480,11 @@ function phaseTimeline() {
     </section>`;
 }
 
-// Mřížka Ganttu. mode 'edit' = hráč plánuje, 'review' = plán vs. skutečnost.
+// Mřížka Ganttu (plánování i plán vs. skutečnost).
 function ganttGrid(tasks, gridDays, phaseDays, rowFn, footer) {
+  const holds = new Set(tasks.filter(t => t.holdDay).map(t => t.holdDay));
   const head = Array.from({ length: gridDays }, (_, i) => i + 1)
-    .map(d => `<div class="g-day ${d > phaseDays ? 'out' : ''} ${d === phaseDays ? 'end' : ''}">${d}</div>`).join('');
+    .map(d => `<div class="g-day ${d > phaseDays ? 'out' : ''} ${d === phaseDays ? 'end' : ''}" ${holds.has(d) ? 'title="Inspekce / zkušebna"' : ''}>${holds.has(d) ? '🔍' : d}</div>`).join('');
   return `
     <div class="gantt-wrap">
       <div class="gantt" style="--days:${gridDays}">
@@ -1287,23 +1495,27 @@ function ganttGrid(tasks, gridDays, phaseDays, rowFn, footer) {
     </div>`;
 }
 
-function usageRow(use, gridDays, phaseDays, crew, label) {
-  const cells = Array.from({ length: gridDays }, (_, i) => {
-    const u = use[i + 1] || 0;
-    return `<div class="g-use ${u > crew ? 'over' : ''} ${i + 1 > phaseDays ? 'out' : ''}">${u || ''}</div>`;
+function usageRows(tasks, startOf, gridDays, phaseDays, crew) {
+  return Object.entries(crew).map(([k, n]) => {
+    const use = usage(tasks, startOf, {}, Object.keys(crew).length > 1 || k !== 'lide' ? k : null);
+    const cells = Array.from({ length: gridDays }, (_, i) => {
+      const u = use[i + 1] || 0;
+      return `<div class="g-use ${u > n ? 'over' : ''} ${i + 1 > phaseDays ? 'out' : ''}">${u || ''}</div>`;
+    }).join('');
+    const lbl = skillLabel(k);
+    return `<div class="g-row g-foot"><div class="g-task"><b>${lbl.icon} ${lbl.label} na den</b><small>k dispozici ${n}</small></div><div class="g-deps"></div><div class="g-days">${cells}</div></div>`;
   }).join('');
-  return `<div class="g-row g-foot"><div class="g-task"><b>${label}</b><small>tým ${crew} lidí/den</small></div><div class="g-deps"></div><div class="g-days">${cells}</div></div>`;
 }
 
 function ganttPlan() {
   const ph = phase();
-  const tasks = ph.tasks;
+  const tasks = phaseTasks();
   const g = S.gantt;
   const gridDays = ph.days + GANTT_EXTRA_DAYS;
   const ev = evaluateGantt();
-  const conflictIds = new Set(ev.declaredConflicts.map(t => t.id));
+  const conflictIds = new Set([...ev.declaredConflicts, ...ev.holdConflicts].map(t => t.id));
   const cp = has('cpm') ? criticalInfo(tasks, g.deps) : null;
-  const use = usage(tasks, t => g.starts[t.id]);
+  const multi = Object.keys(ev.crew).length > 1;
   const row = t => {
     const s = g.starts[t.id];
     const e = taskEnd(s, t);
@@ -1311,40 +1523,46 @@ function ganttPlan() {
       const d = i + 1;
       const inBar = d >= s && d <= e;
       const cls = [inBar ? 'in' : '', inBar && conflictIds.has(t.id) ? 'conflict' : '', inBar && cp && cp.critical.has(t.id) ? 'crit' : '',
-        d > ph.days ? 'out' : '', d === ph.days ? 'end' : ''].join(' ');
-      return `<button class="g-cell ${cls}" data-action="ganttStart" data-task="${t.id}" data-day="${d}" title="${t.id}: začít dnem ${d}">${inBar && d === s ? t.id : ''}</button>`;
+        inBar && t.carried ? 'carried' : '', d > ph.days ? 'out' : '', d === ph.days ? 'end' : '', t.holdDay === d ? 'hold' : ''].join(' ');
+      return `<button class="g-cell ${cls}" data-action="ganttStart" data-task="${t.id}" data-day="${d}" title="${t.id}: začít dnem ${d}">${inBar && d === s ? t.id : !inBar && t.holdDay === d ? '🔍' : ''}</button>`;
     }).join('');
     const chips = tasks.filter(o => o.id !== t.id).map(o => `
       <button class="dep ${g.deps[t.id].includes(o.id) ? 'on' : ''}" data-action="ganttDep" data-task="${t.id}" data-dep="${o.id}" title="${t.id} smí začít až po skončení ${o.id}">${o.id}</button>`).join('');
     const cpNote = cp ? (cp.critical.has(t.id) ? '<span class="crit-tag">⚑ kritická cesta</span>' : `<span class="float-tag">vůle ${days(cp.float[t.id])}</span>`) : '';
+    const sk = skillLabel(taskSkill(t));
     return `
       <div class="g-row ${conflictIds.has(t.id) ? 'has-conflict' : ''}">
-        <div class="g-task"><b class="g-id">${t.id}</b> ${t.name}
-          <small>${days(t.days)} · ${t.people} 👷 · ${taskMD(t)} MD ${cpNote}</small>
+        <div class="g-task"><b class="g-id ${t.carried ? 'carried' : ''}">${t.id}</b> ${t.name}
+          <small>${days(t.days)} · ${t.people} ${sk.icon}${multi ? ` ${sk.label.toLowerCase()}` : ''} · ${taskMD(t)} MD ${cpNote}</small>
+          ${t.holdDay ? `<small class="hold-note">🔍 nejdřív ${t.holdDay}. den</small>` : ''}
           <small class="note">${t.note}</small></div>
         <div class="g-deps">${chips}</div>
         <div class="g-days">${cells}</div>
       </div>`;
   };
   const slack = ph.days - ev.finish;
+  const planMD = sum(tasks, taskMD);
+  const roughNote = ph.rough && S.sprint > 1 ? `<p class="rough-note">📏 Odhad nahrubo byl ${roughMD(ph)}, podrobný plán má <b>${planMD} MD</b> (${planMD >= ph.rough ? '+' : ''}${Math.round((planMD / ph.rough - 1) * 100)} %). Hrubé odhady bývají optimistické.</p>` : '';
+  const carryNote = S.carryIn.length ? `<p class="warn">🚧 Z minulé výluky se přesunulo: ${S.carryIn.map(t => t.name).join(', ')}.</p>` : '';
   return `
-    <div class="phase-title"><span class="phase">${per().nom} ${S.sprint} z ${periods()}</span><h2>Podrobný plán etapy: ${ph.name}</h2>
-      <p>${ph.goal} Cíl etapy: ${ph.milestone.icon} <b>${ph.milestone.name}</b>.</p></div>
+    <div class="phase-title"><span class="phase">${per().nom} ${S.sprint} z ${periods()}</span><h2>Podrobný plán: ${ph.name}</h2>
+      <p>${ph.goal} Cíl: ${ph.milestone.icon} <b>${ph.milestone.name}</b>.${ph.window ? ' Je to <b>výluka</b> – co se nestihne, čeká na další.' : ''}</p></div>
     ${phaseTimeline()}
     <div class="card">
+      ${roughNote}${carryNote}
       <div class="gantt-stats">
-        <div><span>Délka etapy</span><b>${days(ph.days)}</b></div>
+        <div><span>Délka ${ph.window ? 'výluky' : 'etapy'}</span><b>${days(ph.days)}</b>${S.phaseDelay ? `<small class="warn">zdržení ${days(S.phaseDelay)}</small>` : ''}</div>
         <div class="${slack < 0 ? 'bad' : slack === 0 ? 'warn' : 'good'}"><span>Plán končí</span><b>dnem ${ev.finish}</b><small>${slack >= 0 ? `vůle ${days(slack)}` : `přesah ${days(-slack)}`}</small></div>
-        <div><span>Práce</span><b>${phaseMD(ph)} MD</b><small>tým ${ev.crew} lidí/den</small></div>
-        <div class="${ev.declaredConflicts.length ? 'bad' : 'good'}"><span>Konflikty závislostí</span><b>${ev.declaredConflicts.length}</b><small>podle tvých vazeb</small></div>
+        <div><span>Práce</span><b>${planMD} MD</b><small>${crewText(ev.crew)}</small></div>
+        <div class="${conflictIds.size ? 'bad' : 'good'}"><span>Konflikty</span><b>${conflictIds.size}</b><small>závislosti${tasks.some(t => t.holdDay) ? ' a inspekce' : ''}</small></div>
         <div class="${ev.overDays ? 'bad' : 'good'}"><span>Přetížení týmu</span><b>${days(ev.overDays)}</b></div>
         <div class="${S.buffer < 0 ? 'bad' : S.buffer === 0 ? 'warn' : ''}"><span>Rezerva projektu</span><b>${days(S.buffer)}</b></div>
       </div>
-      <p class="hint">Klikni v řádku úkolu na den, kdy má začít. Ve sloupci <b>Začíná po</b> vyznač, po kterých úkolech smí začít. Dole vidíš, kolik lidí je který den potřeba. Skutečné závislosti se ukážou až během etapy – odvoď je z popisu práce.</p>
-      ${ganttGrid(tasks, gridDays, ph.days, row, usageRow(use, gridDays, ph.days, ev.crew, 'Lidé na den'))}
+      <p class="hint">Klikni v řádku úkolu na den, kdy má začít. Ve sloupci <b>Začíná po</b> vyznač, po kterých úkolech smí začít. Dole vidíš, kolik lidí${multi ? ' každé profese' : ''} je který den potřeba. Skutečné závislosti se ukážou až během ${per().gen} – odvoď je z popisu práce.</p>
+      ${ganttGrid(tasks, gridDays, ph.days, row, usageRows(tasks, t => g.starts[t.id], gridDays, ph.days, ev.crew))}
       <div class="actions">
         ${hasPlanning() ? '<button class="btn" data-action="ganttAuto">⏩ Seřadit co nejdřív podle závislostí</button>' : '<span class="hint">S praktikou pro harmonogram by úkoly seřadil nástroj.</span>'}
-        <button class="btn primary big" data-action="startPhase">Spustit etapu ${S.sprint} ▶</button>
+        <button class="btn primary big" data-action="startPhase">Spustit ${per().acc} ${S.sprint} ▶</button>
       </div>
     </div>`;
 }
@@ -1352,7 +1570,7 @@ function ganttPlan() {
 function phaseReview() {
   const r = S.review;
   const ph = r.phase;
-  const tasks = ph.tasks;
+  const tasks = r.tasks;
   const gridDays = Math.max(ph.days, r.sim.finish, r.plan.finish) + 1;
   const byId = byTaskId(tasks);
   const row = t => {
@@ -1366,9 +1584,10 @@ function phaseReview() {
       return `<div class="g-cell ro ${cls}">${d === a.start ? t.id : ''}</div>`;
     }).join('');
     const truth = t.deps.length ? t.deps.join(', ') : '–';
+    const waitedHold = t.holdDay && ps < t.holdDay;
     return `
       <div class="g-row">
-        <div class="g-task"><b class="g-id">${t.id}</b> ${t.name}<small>${a.rework ? '⚠️ přerušeno, den navíc' : a.waitedForPeople ? `👷 čekal na volné lidi (${days(a.waitedForPeople)})` : a.start > ps ? `čekal na předchůdce (${days(a.start - ps)})` : '✓ podle plánu'}</small></div>
+        <div class="g-task"><b class="g-id ${t.carried ? 'carried' : ''}">${t.id}</b> ${t.name}<small>${a.rework ? '⚠️ přerušeno, den navíc' : waitedHold ? `🔍 čekal na inspekci (${t.holdDay}. den)` : a.waitedForPeople ? `👷 čekal na volné lidi (${days(a.waitedForPeople)})` : a.start > ps ? `čekal na předchůdce (${days(a.start - ps)})` : '✓ podle plánu'}</small></div>
         <div class="g-deps"><small>skutečně po: <b>${truth}</b></small></div>
         <div class="g-days">${cells}</div>
       </div>`;
@@ -1378,37 +1597,98 @@ function phaseReview() {
       const pred = t.deps.find(d => r.starts[t.id] <= taskEnd(r.starts[d], byId[d]));
       return `⚠️ <b>${t.id} ${t.name}</b> začal dřív, než skončil <b>${pred} ${byId[pred].name}</b> – práce se přerušila a den se dělal znovu.`;
     }),
+    ...r.plan.holdConflicts.map(t => `🔍 <b>${t.id} ${t.name}</b> byl naplánovaný před příjezdem inspektora/zkušebny (${t.holdDay}. den) – musel čekat.`),
     ...(r.plan.missed.length && !r.sim.rework.length ? [`Nevyznačil(a) jsi ${r.plan.missed.length} skutečnou závislost(i), ale plán je náhodou dodržel.`] : []),
     ...(r.plan.extra.length ? [`Zbytečné vazby: ${r.plan.extra.map(([d, t]) => `${t} po ${d}`).join(', ')} – úkoly mohly běžet souběžně.`] : []),
     ...(r.sim.waited.length ? [`👷 Plán počítal s víc lidmi, než tým má (${days(r.sim.overDays)} přetížení). Úkoly ${r.sim.waited.map(t => t.id).join(', ')} musely čekat, až se lidé uvolní.`] : []),
-    ...(r.sim.delay ? [`📅 Událost přidala ${days(r.sim.delay)} zpoždění.`] : []),
+    ...(r.sim.delay ? [`📅 Zdržení z událostí a okolností: ${days(r.sim.delay)}.`] : []),
+    ...(r.carry.length ? [`🚧 Ve výluce se nestihlo: ${r.carry.map(t => t.name).join(', ')}. Práce se přesouvá do další výluky.`] : []),
   ];
   const evm = has('evm') ? `<p>📈 <b>EVM:</b> plánovaná práce ${r.plannedMD} MD, skutečná ${r.actualMD} MD · CPI ≈ ${(r.plannedMD / r.actualMD).toFixed(2)} · SPI ≈ ${(Math.min(ph.days, r.plan.finish) / r.sim.finish).toFixed(2)}</p>` : '';
   const last = S.sprint >= periods();
+  const msText = r.windowed
+    ? (r.late ? `Výluka skončila s nedodělky (${r.carry.length}). Přesouvají se do další výluky.` : 'Výluka skončila podle plánu.')
+    : r.overrun ? `${per().nom} přetáhla o ${days(r.overrun)}${r.buffer >= 0 ? ', zatím to pokryla rezerva projektu.' : ' a rezerva projektu nestačila.'}` : `${per().nom} skončila v plánované délce.`;
   return `
-    <div class="phase-title"><span class="phase">${per().nom} ${S.sprint} z ${periods()} · konec</span><h2>Kontrola etapy: ${ph.name}</h2></div>
+    <div class="phase-title"><span class="phase">${per().nom} ${S.sprint} z ${periods()} · konec</span><h2>Kontrola: ${ph.name}</h2></div>
     ${phaseTimeline()}
     <div class="card">
       <div class="gantt-stats">
         <div><span>Plán</span><b>dnem ${r.plan.finish}</b></div>
-        <div class="${r.overrun ? 'bad' : 'good'}"><span>Skutečnost</span><b>dnem ${r.sim.finish}</b><small>z ${days(ph.days)}</small></div>
-        <div class="${r.buffer < 0 ? 'bad' : r.buffer === 0 ? 'warn' : ''}"><span>Rezerva projektu</span><b>${days(r.buffer)}</b>${r.overrun ? `<small>čerpáno ${days(r.overrun)}</small>` : ''}</div>
+        <div class="${r.late ? 'bad' : 'good'}"><span>Skutečnost</span><b>dnem ${r.sim.finish}</b><small>z ${days(ph.days)}</small></div>
+        <div class="${r.buffer < 0 ? 'bad' : r.buffer === 0 ? 'warn' : ''}"><span>Rezerva projektu</span><b>${days(r.buffer)}</b>${!r.windowed && r.overrun ? `<small>čerpáno ${days(r.overrun)}</small>` : ''}</div>
       </div>
       <p class="hint">Obrys = tvůj plán, plná barva = skutečnost. Teď vidíš i skutečné závislosti.</p>
       ${ganttGrid(tasks, gridDays, ph.days, row)}
-      ${causes.length ? `<ul class="causes">${causes.map(c => `<li>${c}</li>`).join('')}</ul>` : '<p class="good-note">✅ Etapa proběhla přesně podle plánu.</p>'}
+      ${causes.length ? `<ul class="causes">${causes.map(c => `<li>${c}</li>`).join('')}</ul>` : '<p class="good-note">✅ Proběhlo přesně podle plánu.</p>'}
       ${evm}
       ${r.beyond ? `<p class="warn">Rezerva projektu je vyčerpaná – ${days(r.beyond)} navíc stojí harmonogram i peníze.</p>` : ''}
       <div class="chips">${deltaChips(r.deltas)}</div>
       ${r.ongoing ? `<h4>Průběžný vliv tvého mixu</h4><p class="hint">${r.ongoing.labels.join(' · ')}</p><div class="chips">${deltaChips(r.ongoing.deltas)}</div>` : ''}
     </div>
-    <div class="card milestone ${r.overrun ? 'late' : 'ok'}">
-      <h3>📐 Milník: ${ph.milestone.icon} ${ph.milestone.name} ${r.overrun ? '– se zpožděním' : '✓'}</h3>
-      <p>${r.overrun ? `Etapa přetáhla o ${days(r.overrun)}${r.buffer >= 0 ? ', zatím to pokryla rezerva projektu.' : ' a rezerva projektu nestačila.'}` : 'Etapa skončila v plánované délce.'}</p>
+    <div class="card milestone ${r.late ? 'late' : 'ok'}">
+      <h3>📐 Milník: ${ph.milestone.icon} ${ph.milestone.name} ${r.late ? '– se zpožděním' : '✓'}</h3>
+      <p>${msText}</p>
     </div>
     ${revealBlock(r.reveals)}
     <div class="actions"><button class="btn primary" data-action="reviewNext">${last ? 'Vyhodnotit projekt 🏁' : S.sprint === gateAfter() && !S.gateDone ? 'Na kontrolní den 🔍' : `Na plánování ${per().gen} ${S.sprint + 1} ▶`}</button></div>
   `;
+}
+
+// ---------- Vykreslení: změna kontextu ----------
+
+function shift() {
+  const sh = S.sc.shift;
+  const r = S.reshape;
+  const res = S.shiftResult;
+  const adds = reshapeAdds();
+  const cost = sum(r.mix.map(practiceById), p => p.cost);
+  const over = cost - budget();
+  const card = p => {
+    const on = r.mix.includes(p.id);
+    const orig = r.original.includes(p.id);
+    const cls = [on ? 'on' : '', on && !orig ? 'added' : '', !on && orig ? 'removed' : ''].join(' ');
+    const disabled = res || (!on && !orig && adds.length >= MAX_SHIFT_ADDS);
+    return `<button class="reshape-card ${cls}" data-action="reshapeToggle" data-id="${p.id}" ${disabled ? 'disabled' : ''} title="${p.desc}">
+      <span>${p.icon}</span><b>${p.name}</b><small>${p.cost ? '●'.repeat(p.cost) : 'zdarma'}</small>
+      ${on && !orig ? '<em>nově</em>' : !on && orig ? '<em>odebráno</em>' : ''}</button>`;
+  };
+  const cols = Object.keys(WORLD_LABEL).map(w => `
+    <div class="pcol"><h3>${WORLD_LABEL[w]}</h3>${PRACTICES.filter(p => p.world === w).map(card).join('')}</div>`).join('');
+  const changes = [
+    ...(r.devalued.length ? [`📉 Ztratily hodnotu: ${r.devalued.map(b => b.name).join(', ')}.`] : []),
+    ...(r.added.length ? [`🆕 Přibyla práce: ${r.added.map(b => b.name).join(', ')}.`] : []),
+    ...(sh.capacityLoss ? [`⏳ Kapacita týmu je do konce projektu nižší o ${sh.capacityLoss}.`] : []),
+  ];
+  const result = res ? `
+    <div class="card mix-result ${res.adapted ? 'adapted' : 'rigid'}">
+      <h3>${res.adapted ? '✅ Řízení jsi přizpůsobil(a) nové situaci' : '❌ Metodika zůstala stejná, i když se svět změnil'}</h3>
+      <p>${sh.lesson}</p>
+      ${res.hiddenFits.length ? `<p>🎯 Na odhalený faktor sedí: ${res.hiddenFits.map(p => `${p.icon} ${p.name}`).join(', ')}.</p>` : ''}
+      ${res.newBad.length ? `<p class="warn">⚠️ Nově přidané, ale tady nevhodné: ${res.newBad.map(p => `${p.icon} ${p.name}`).join(', ')}.</p>` : ''}
+      <div class="chips">${deltaChips(res.deltas)}</div>
+      ${revealBlock(res.reveals)}
+      <button class="btn primary" data-action="shiftNext">Na plánování ${per().gen} ${S.sprint + 1} ▶</button>
+    </div>` : `
+    <div class="mix-bar card">
+      <div class="mix-cost">
+        <span>Režie řízení</span>
+        <b class="${over > 0 ? 'over' : ''}">${cost} / ${budget()}</b>
+        <small>Přidáno ${adds.length} / ${MAX_SHIFT_ADDS}</small>
+      </div>
+      <div class="mix-pairs"><p class="hint">Každá nově zavedená praktika stojí −3 💰 a −2 💪 (změna procesu uprostřed projektu). Odebrat můžeš cokoli zdarma.</p></div>
+      <button class="btn primary big" data-action="confirmShift">Potvrdit úpravu mixu ▶</button>
+    </div>`;
+  return `
+    <div class="phase-title"><span class="phase">🔥 Změna kontextu · po ${per().gen === 'etapy' ? 'etapě' : 'sprintu'} ${S.sprint}</span><h2>${sh.icon} ${sh.title}</h2></div>
+    <div class="card shift-card">
+      <p class="situation">${sh.text}</p>
+      ${changes.length ? `<ul class="causes">${changes.map(c => `<li>${c}</li>`).join('')}</ul>` : ''}
+      <div class="ctx-row"><b>Kontext teď:</b> ${contextChips()}</div>
+      <div class="lesson">🔄 Tvůj mix praktik byl nastavený pro původní situaci. Zvaž, které praktiky nová situace vyžaduje – a které už nedávají smysl.</div>
+    </div>
+    ${res ? '' : `<div class="pgrid reshape">${cols}</div>`}
+    ${result}`;
 }
 
 function finalScore() {
@@ -1466,6 +1746,11 @@ function end() {
         <div><span>Manažerský úsudek</span><b>${Math.round(f.insightPct)}%</b><small>přístup, mix praktik a rozhodnutí</small></div>
       </div>
     </div>
+    ${S.aftermath.length ? `
+      <div class="card aftermath">
+        <h3>⏳ Dozvuky po projektu</h3>
+        ${S.aftermath.map(a => `<p><b>${a.title}</b> – ${a.text} <small>(rozhodnutí „${a.fromChoice}“)</small></p><div class="chips">${deltaChips(a.deltas)}</div>`).join('')}
+      </div>` : ''}
     <div class="card">
       <h3>🗺️ Vzorce, které tvůj projekt vytvořil</h3>
       <p>${approachChip()} Tvůj mix: ${chosenPractices().map(p => `<span class="ctx">${p.icon} ${p.name}</span>`).join(' ') || '–'}</p>

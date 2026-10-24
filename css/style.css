@@ -136,6 +136,39 @@ small { color: var(--muted); }
 .sc-tag { color: var(--muted); font-size: .92rem; }
 .sc-rec { font-size: .82rem; font-weight: 600; color: var(--primary); margin-top: 4px; }
 .record { font-weight: 600; color: var(--primary); }
+.level-title { margin: 18px 0 8px; }
+.level-title.hard { color: var(--bad); }
+.level-hint { margin-top: -4px; }
+.scenario.hard { border-color: var(--bad-soft); }
+.scenario.hard:hover:not(:disabled) { border-color: var(--bad); }
+.scenario.locked { opacity: .5; cursor: not-allowed; }
+.scenario.locked:hover { transform: none; }
+.hard-badge { display: inline-block; font-weight: 700; color: var(--bad); background: var(--bad-soft); padding: 4px 12px; border-radius: 99px; margin: -4px 0 12px; }
+.hard-rule { color: var(--bad); }
+.ctx.hidden-ctx { background: var(--bg); color: var(--muted); border: 1px dashed var(--muted); }
+.ctx.revealed { background: var(--bad-soft); color: var(--bad); }
+
+/* ---------- Hard: změna kontextu, ozvěny rozhodnutí ---------- */
+.shift-card { border-left: 6px solid var(--bad); }
+.reshape-card {
+  font: inherit; color: var(--ink); width: 100%; text-align: left; cursor: pointer;
+  display: grid; grid-template-columns: 26px 1fr auto; gap: 2px 8px; align-items: center;
+  background: var(--surface); border: 2px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px;
+}
+.reshape-card b { font-size: .88rem; line-height: 1.2; }
+.reshape-card small { color: var(--primary); font-size: .7rem; }
+.reshape-card em { grid-column: 2 / 4; font-size: .74rem; font-style: normal; font-weight: 700; }
+.reshape-card.on { border-color: var(--primary); background: var(--both-soft); }
+.reshape-card.added { border-color: var(--good); background: var(--good-soft); }
+.reshape-card.added em { color: var(--good); }
+.reshape-card.removed { border-style: dashed; opacity: .7; }
+.reshape-card.removed em { color: var(--bad); }
+.reshape-card:disabled { cursor: not-allowed; opacity: .4; }
+.mix-result.adapted { border-left: 6px solid var(--good); }
+.mix-result.rigid { border-left: 6px solid var(--bad); }
+.echo { background: var(--warn-soft); border-left: 4px solid var(--warn); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; font-size: .92rem; }
+.later { font-weight: 600; color: var(--warn); }
+.aftermath { border-left: 6px solid var(--warn); }
 
 .phase-title { margin: 8px 0 16px; }
 .phase { display: inline-block; font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--primary); margin-bottom: 4px; }
@@ -421,6 +454,11 @@ h4 { margin: 14px 0 6px; font-size: 1rem; }
 .g-foot .g-task b { font-size: .8rem; }
 .g-use { text-align: center; font-weight: 700; font-size: .78rem; padding: 6px 0; border-left: 1px solid var(--line); }
 .g-use.over { background: var(--bad); color: #fff; }
+.g-cell.hold { box-shadow: inset 2px 0 0 var(--warn); font-size: .8rem; }
+.g-cell.in.carried { background: var(--warn); }
+.g-id.carried { background: var(--warn); width: auto; padding: 0 4px; }
+.hold-note { color: var(--warn) !important; font-weight: 600; }
+.rough-note { background: var(--warn-soft); padding: 8px 12px; border-radius: 8px; }
 .crit-tag { color: var(--bad); font-weight: 700; }
 .float-tag { color: var(--good); font-weight: 600; }
 .causes { padding-left: 18px; }

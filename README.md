@@ -20,6 +20,27 @@ praktiky. Univerzální recept neexistuje.
 | ⚡ Odstávka elektrárny | prediktivní | **plánování po vlnách a Gantt** se závislostmi, kapacitou a rezervou |
 | 🚀 Startup Zachraň jídlo | agilní | nejistý trh, **objevování hodnoty a experimenty** |
 
+**🔥 Úroveň Hard** (odemkne se po dosažení 70 bodů v kterémkoli projektu Normal; pro učitele
+a testování lze odemknout adresou s parametrem `?hard`, např. `…/hybridni-projekt/?hard`):
+
+| Scénář | Typ | Co je na něm těžké |
+|---|---|---|
+| 🛰️ Studentská družice | hybridní | absolutní startovní okno (nestihnutí = konec projektu), tři integrační body, start se posune dřív |
+| 🏥 Urgentní příjem nemocnice | hybridní | stavba za provozu; software se uprostřed stane zdravotnickým prostředkem |
+| 🎮 Videohra v early accessu | agilní | peníze ubývají každý sprint, extrémně nejisté hodnoty, trh se otočí |
+| 🌉 Výměna železničního mostu | prediktivní | pevné výluky (nedodělky se přesouvají), tři profese, inspekční dny, optimistické odhady |
+
+Společné mechaniky Hardu:
+- **méně zdrojů** – rozpočet režie 6 bodů, ukazatele startují na 40, projekt končí už při 10;
+- **skrytý faktor kontextu** – jeden štítek kontextu je skrytý a odhalí se uprostřed projektu;
+- **změna kontextu** – po kontrolním bodu se změní podmínky a hráč může **přeskládat mix**
+  (přidat nejvýš 2 praktiky za cenu, odebrat cokoli). Kdo se nepřizpůsobí, toho každé období
+  poškozuje antivzorec *Strnulá metodika*;
+- **opožděné následky** – některá rozhodnutí se o 1–2 období později vrátí jako navazující
+  událost (*Zametené pod koberec* / *Investice, která se vrací*); co se do projektu nevejde,
+  dopadne jako *dozvuky po projektu*;
+- **dilemata** – události, kde i nejlepší volba něco stojí.
+
 Typ projektu hráč předem nevidí – určí ho v první fázi a hra ho odhalí až po vyhodnocení.
 Každá hra vylosuje události scénáře a obecné události pro daný typ projektu (celkem 52 událostí)
 a odpovědi se pokaždé zamíchají. Nejlepší skóre každého scénáře se ukládá v prohlížeči.
@@ -55,7 +76,7 @@ python3 -m http.server 8765
      pro harmonogram, kritickou cestu a vůli jen hráč s analýzou kritické cesty;
    - **agilní** – hodnota položek je jen odhad, skutečnost se ukáže po dodání (nebo experimentem
      s praktikou Hypotézy a experimenty); dodané funkce odhalují nové podněty; úspěch se měří trakcí.
-4. **Vzorce a antivzorce** – během hry se odhalují vzorce (10) a antivzorce (14), které tvůj mix
+4. **Vzorce a antivzorce** – během hry se odhalují vzorce (12) a antivzorce (16), které tvůj mix
    v daném kontextu vytvořil. Každý je zapsaný jako řetězec
    **kontext → forma → mechanismus → důsledek**. Mechanismus působí od začátku, odhalí se až jeho důsledek.
 5. **Vyhodnocení** – skóre (zdraví projektu, dodaná hodnota, manažerský úsudek), vzorce z této hry
@@ -87,6 +108,14 @@ python3 -m http.server 8765
   - agilní: `approachText`, `targetValue`, položky s `value` (odhad) a `actual` (skutečnost),
     `reveals` + `discoveries` pro nové podněty, milníky `traction` s `target`, vlastní `gate`;
   - volitelně `baseCapacity` (kapacita týmu za období).
+  - Hard: `level: 'hard'`, `hiddenContext`, `gateAfter`, `shift` (změna kontextu: `text`, `needs` –
+    praktiky, které adaptaci splní, `penalty`, volitelně `devalue`, `addItems`, `capacityLoss`,
+    `delayIfNot`) a `followups` (navazující události, na které odkazuje volba
+    `later: { after, event }`, s `unresolved` pro dozvuky po projektu). Agilní Hard umí `burn`
+    a `revenueDiv` (odpočet peněz a tržby), `experimentsPerSprint`. Prediktivní Hard umí etapy
+    jako výluky (`window: true`), více profesí (`crew: { obecne, svarec, jerab }`, `skill` u úkolu),
+    inspekční dny (`holdDay`) a hrubé odhady (`rough`). Hybridní Hard umí milníky `integration`
+    (`requires`) a fatální start (`launch` s `fatal: true`).
 
 Každá volba má `rating` (`best` / `ok` / `bad`), `effects` na ukazatele a volitelně
 `capacityMod` (změna kapacity příštího období), `dropScope` (vyřazení položek MoSCoW kategorie),
